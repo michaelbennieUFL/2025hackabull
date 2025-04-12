@@ -1,0 +1,70 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Crafting{% endblock title %}
+
+{% block content %}
+  <div class="pc-container">
+    
+  <div id="selected-recipe" class="absolute top-0 left-0 w-full h-full bg-black/50 z-50 flex flex-col items-center justify-center">
+    <div class="w-3/4 h-3/4 bg-amber-50 rounded-md p-2">
+      <div class="w-full flex flex-row">
+        <button class="text-slate-900 text-2xl font-bold" onClick="saveSelectedRecipe()">Save</button>
+        <button class="text-red-500 w-8 h-8 p-1 border-2 border-red-500 rounded-full flex items-center justify-center text-2xl font-bold ml-auto" onClick="closeSelectedRecipe()">
+          <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="50" height="50" viewBox="0 0 48 48">
+            <path fill="#F44336" d="M21.5 4.5H26.501V43.5H21.5z" transform="rotate(45.001 24 24)"></path><path fill="#F44336" d="M21.5 4.5H26.5V43.501H21.5z" transform="rotate(135.008 24 24)"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex flex-col items-center justify-center gap-4">
+        <h2 id="selected-recipe-name" class="text-center font-bold text-xl">Name</h2>
+        <p id="selected-recipe-description" class="text-center text-slate-900">Description</p>
+        <div id="selected-recipe-materials" class="flex flex-col items-center justify-center gap-4"></div>
+      </div>
+    </div>
+  </div>
+
+    <div class="pc-content">
+      <!-- [ breadcrumb ] start -->
+      <div class="page-header">
+        <div class="page-block">
+          <div class="row align-items-center">
+            <div class="col-md-12">
+              <div class="page-header-title">
+                <h2 class="mb-0 text-center font-bold text-2xl">Crafting</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row flex flex-col gap-8">
+
+        <div class="flex flex-col items-center justify-center gap-4">
+          <h2 class="text-center font-bold text-xl">Your Cookbook</h2>
+          <div class="w-full flex flex-col items-center justify-center bg-amber-50 shadow-inset">
+            <div id="recipe-list" class="w-full flex flex-col items-center justify-center p-4 gap-4"></div>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-center justify-center gap-4">
+          <h2 class="text-center font-bold text-xl">Saved Recipes</h2>
+          <div class="w-full flex flex-col items-center justify-center bg-amber-50 shadow-inset">
+            <div id="saved-recipes" class="w-full flex flex-col items-center justify-center p-4 gap-4"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+{% block extrastyle %}
+
+{% endblock extrastyle %}
+
+{% block extra_js %}
+
+<script src="{{ url_for('static', filename='assets/js/pages/crafting.js')}}"></script>
+
+{% endblock extra_js %}
