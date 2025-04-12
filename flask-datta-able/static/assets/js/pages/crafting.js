@@ -3,6 +3,8 @@ const selectedRecipe = document.getElementById("selected-recipe");
 const selectedRecipeName = document.getElementById("selected-recipe-name");
 const selectedRecipeDescription = document.getElementById("selected-recipe-description");
 const selectedRecipeMaterials = document.getElementById("selected-recipe-materials");
+const saveRecipeBtn = document.getElementById("save-recipe-btn");
+const savedCheckmark = document.getElementById("saved-checkmark");
 
 const selectedRecipeObject = {
     name: "",
@@ -13,21 +15,45 @@ const selectedRecipeObject = {
 async function loadRecipes() {
     recipeList.innerHTML = "";
 
-    /*const objects = JSON.parse(localStorage.getItem("objects") || "[]");
-    if(!objects.length) {
-        return;
+    const materials = JSON.parse(localStorage.getItem("materials") || "[]");
+    if(!materials.length) {
+        materials.push({
+            "name": "stone",
+            "description": "A rock that is hard, durable, about the size of a human head."
+        });
+        materials.push({
+            "name": "stick",
+            "description": "A long, thin piece of wood, about the size of a human arm."
+        });
+        materials.push({
+            "name": "dry leaves",
+            "description": "A handful of crispy, brown fallen leaves that are completely dry and crumble easily. Perfect tinder material."
+        });
+        materials.push({
+            "name": "pine needles",
+            "description": "A bundle of dried pine needles, resinous and highly flammable. About two handfuls worth, collected from under a pine tree."
+        });
+        materials.push({
+            "name": "birch bark",
+            "description": "Several strips of papery birch bark, naturally peeling from the tree. White in color, about 6 inches long each, and contains natural oils that make it excellent fire starter."
+        });
     }
 
-    const response = await fetch("/api/recipes", {
+    const response = await fetch("http://localhost:5001/analyze/find_recipes", {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With"
         },
-        body: JSON.stringify({ "objects": objects })
+        body: JSON.stringify({ "materials": materials.map(material => material.description) })
     });
 
-    const data = await response.json(); */
-    const data = [
+    const data = await response.json();
+    
+    /*const data = [
         {
             "name": "Fireplace",
             "materials": [
@@ -81,7 +107,7 @@ async function loadRecipes() {
             ],
             "crafting": "Take the stone and stick to the crafting table and craft the stone axe."
         }
-    ]
+    ];*/
     console.log(data);
 
     for(const recipe of data) {
@@ -123,14 +149,26 @@ async function loadRecipes() {
 }
 
 function displaySelectedRecipe() {
-    selectedRecipe.style.display = "flex";
+    selectedRecipe.style.width = "30%";
     selectedRecipeName.innerHTML = selectedRecipeObject.name;
     selectedRecipeDescription.innerHTML = selectedRecipeObject.crafting;
     selectedRecipeMaterials.replaceChildren();
 
+    // Check if recipe is already saved
+    const savedRecipes = JSON.parse(localStorage.getItem("savedRecipes") || "[]");
+    const isSaved = savedRecipes.some(recipe => recipe.name === selectedRecipeObject.name);
+    
+    if (isSaved) {
+        saveRecipeBtn.classList.add("hidden");
+        savedCheckmark.classList.remove("hidden");
+    } else {
+        saveRecipeBtn.classList.remove("hidden");
+        savedCheckmark.classList.add("hidden");
+    }
+
     for(const material of selectedRecipeObject.materials) {
         const materialItem = document.createElement("div");
-        materialItem.className = "material-item";
+        materialItem.className = "w-full p-2 bg-slate-100 rounded-md text-center";
         materialItem.innerHTML = `${material.name[0].toUpperCase() + material.name.slice(1)} (${material.quantity})`;
         selectedRecipeMaterials.appendChild(materialItem);
     }
@@ -156,14 +194,36 @@ function saveSelectedRecipe() {
         // Save updated array back to localStorage
         localStorage.setItem("savedRecipes", JSON.stringify(savedRecipes));
 
+        // Show checkmark and hide save button
+        saveRecipeBtn.classList.add("hidden");
+        savedCheckmark.classList.remove("hidden");
+
         // Refresh the saved recipes display
         loadSavedRecipes();
     }
 }
 
 function closeSelectedRecipe() {
-    selectedRecipe.style.display = "none";
-    console.log("closeSelectedRecipe");
+    selectedRecipe.style.width = "0";
+    document.body.style.overflow = ""; // Restore scrolling
+}
+
+function unsaveSelectedRecipe() {
+    // Get existing saved recipes
+    const savedRecipes = JSON.parse(localStorage.getItem("savedRecipes") || "[]");
+    
+    // Filter out the current recipe
+    const updatedRecipes = savedRecipes.filter(recipe => recipe.name !== selectedRecipeObject.name);
+    
+    // Save updated array back to localStorage
+    localStorage.setItem("savedRecipes", JSON.stringify(updatedRecipes));
+    
+    // Update UI
+    saveRecipeBtn.classList.remove("hidden");
+    savedCheckmark.classList.add("hidden");
+    
+    // Refresh the saved recipes display
+    loadSavedRecipes();
 }
 
 // Load saved recipes from localStorage

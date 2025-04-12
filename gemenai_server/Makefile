@@ -47,6 +47,18 @@ test-generate:
 	@echo "\n"
 	@rm -f test_data.json
 
+# Test /analyze/find_recipes endpoint
+test-crafting:
+	@echo "Testing /analyze/find_recipes endpoint..."
+	@echo '{"materials": ["A rock that is hard, durable, about the size of a human head", "A long, thin piece of wood, about the size of a human arm", "A handful of crispy, brown fallen leaves that are completely dry and crumble easily"]}' > test_materials.json
+	curl -X POST \
+		-H "Content-Type: application/json" \
+		-d @test_materials.json \
+		"$(BASE_URL)/analyze/find_recipes"
+	@echo "\n"
+	@rm -f test_materials.json
+
+
 # Test /analyze/question endpoint with and without image
 test-question:
 	@echo "Testing /analyze/question endpoint without image..."
@@ -57,7 +69,7 @@ test-question:
 	@echo "\n"
 
 # Test all endpoints
-test-all: download-images test-hello test-segment test-generate test-question
+test-all: download-images test-hello test-segment test-generate test-question test-crafting
 
 # Optional: clean downloaded images
 clean:

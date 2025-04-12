@@ -12,7 +12,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageColor
 from google import genai
 from google.genai import types
 
-from gemenai_server.items import item_types
+from items import item_types
+from pydantic import BaseModel
 
 app = Flask(__name__)
 
@@ -234,6 +235,55 @@ def analyze_generate_instructions():
         return jsonify({"error": f"Failed to parse instructions JSON: {str(e)}"}), 500
 
     return jsonify(instructions_json)
+
+@app.route('/analyze/find_recipes', methods=['POST'])
+def analyze_find_recipes():
+    data = request.get_json()
+    """
+    Expects a POST with:
+      - a form field "materials": a list of materials
+    Returns a JSON list of recipes.
+    """
+    if "materials" not in data:
+        return jsonify({"error": "No materials provided"}), 400
+
+    materials = data["materials"]
+
+    # Format materials into numbered string
+    materials_str = ", ".join(f"\n{i}: {material}" for i, material in enumerate(materials))
+    
+    prompt = (
+        f"Using the following materials, setup as a indexed array of the description of the material: {materials_str}, "
+        f"generate three recipes that can be made with these materials. Include the name of the recipe, the index of the materials needed, and the instructions to put the materials in the recipe together."
+        "Return a JSON object following the provided schema: { 'name': string, 'materials': number[], 'crafting': string }[]"
+    )
+
+    class Recipe(BaseModel):
+        name: str
+        materials: list[int]
+        crafting: str
+
+    try:
+        response = client.models.generate_content(
+            model=model_name,
+            contents=[prompt],
+            config=types.GenerateContentConfig(
+                response_mime_type='application/json',
+                response_schema=list[Recipe],
+                temperature=0.5,
+                safety_settings=safety_settings,
+            ),
+        )
+    except Exception as e:
+        return jsonify({"error": f"Model generation failed: {str(e)}"}), 500
+
+    recipes = [{
+        "name": recipe.name,
+        "materials": [materials[index] for index in recipe.materials],
+        "crafting": recipe.crafting
+    } for recipe in json.loads(response.text)]
+
+    return jsonify({"result": recipes})
 
 
 @app.route('/analyze/question', methods=['POST'])
