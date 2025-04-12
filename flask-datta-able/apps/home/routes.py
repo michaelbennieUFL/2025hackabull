@@ -158,3 +158,20 @@ def tasks_test():
 @blueprint.app_template_filter("replace_value")
 def replace_value(value, arg):
     return value.replace(arg, " ").title()
+
+
+@blueprint.route('/main-panel')
+def main_panel():
+    return render_template('pages/main_panel.html', segment='main_panel')
+
+@blueprint.route('/inventory')
+def inventory():
+    return render_template('pages/inventory.html', segment='inventory')
+
+@blueprint.route('/crafting')
+def crafting():
+    return render_template('pages/crafting.html', segment='crafting')
+
+@blueprint.route('/gps')
+def gps():
+    return render_template('pages/gps.html', segment='gps')
