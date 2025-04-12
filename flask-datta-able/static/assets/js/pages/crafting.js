@@ -53,12 +53,17 @@ async function loadRecipes() {
         name: recipe.name,
         materials: recipe.materials.map(material => materials.find(m => m.description === material)),
         crafting: recipe.crafting
-    })));
+    }))).catch(() => []);
+
+    if(recipes.length === 0) {
+        recipeList.innerHTML = '<div class="text-center text-red-500">No recipes found. Please try again.</div>';
+        return;
+    }
 
     recipeList.innerHTML = "";
     for(const recipe of recipes) {
         const recipeItem = document.createElement("div");
-        recipeItem.className = "cursor-pointer flex flex-col gap-2 justify-center h-full p-4 shadow-xl bg-white rounded-md hover:shadow-xl hover:shadow-black/20 duration-300 transition-all";
+        recipeItem.className = "cursor-pointer flex-1 flex flex-col gap-2 justify-center h-full p-4 shadow-xl bg-white rounded-md hover:shadow-xl hover:shadow-black/20 duration-300 transition-all";
 
         const nameElement = document.createElement("h5");
         nameElement.className = "font-bold";
@@ -124,7 +129,7 @@ function displaySelectedRecipe() {
     for(const material of selectedRecipeObject.materials) {
         const materialItem = document.createElement("div");
         materialItem.className = "w-full p-2 bg-slate-100 rounded-md text-center";
-        materialItem.innerHTML = `${material.name[0].toUpperCase() + material.name.slice(1)} (${material.quantity})`;
+        materialItem.innerHTML = material.name[0].toUpperCase() + material.name.slice(1);
         selectedRecipeMaterials.appendChild(materialItem);
     }
 }

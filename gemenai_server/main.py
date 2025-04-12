@@ -16,12 +16,14 @@ from google.genai import types
 from items import item_types
 from pydantic import BaseModel
 
+from dotenv import load_dotenv
+load_dotenv()
+
 app = Flask(__name__)
 CORS(app)
 
 # Retrieve API key from environment (ensure you set GOOGLE_API_KEY)
-GOOGLE_API_KEY = "AIzaSyBf110U5S4hurLPwycrnjyKbyD9-pdk2yE"
-client = genai.Client(api_key=GOOGLE_API_KEY)
+client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 model_name = "gemini-2.5-pro-exp-03-25"
 safety_settings = [
     types.SafetySetting(
@@ -240,12 +242,17 @@ def analyze_generate_instructions():
 
 @app.route('/analyze/find_recipes', methods=['POST'])
 def analyze_find_recipes():
-    data = request.get_json()
     """
     Expects a POST with:
       - a form field "materials": a list of materials
     Returns a JSON list of recipes.
     """
+
+    try:
+        data = request.get_json()
+    except Exception as e:
+        return jsonify({"error": f"Invalid JSON data: {str(e)}"}), 400
+    
     if "materials" not in data:
         return jsonify({"error": "No materials provided"}), 400
 
