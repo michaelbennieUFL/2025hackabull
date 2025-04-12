@@ -1,5 +1,157 @@
-{% extends 'layouts/base.html' %}
+{% extends "layouts/base.html" %}
+
+{% block title %}Main Panel{% endblock title %}
+
 {% block content %}
-<h1>Main Panel</h1>
-<p>This is the main dashboard panel.</p>
-{% endblock %}
+<style>
+  .passport-wrapper {
+    animation: fadeInUp 1s ease-out;
+    background: rgba(255, 248, 220, 0.95);
+    border: 2px dashed #aa8800;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    padding: 40px 30px;
+    max-width: 680px;
+    margin: 60px auto 30px;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+  }
+
+  .passport-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #5e3700;
+    margin-bottom: 10px;
+  }
+
+  .passport-subtitle {
+    font-size: 1rem;
+    color: #5e3700;
+    margin-bottom: 30px;
+  }
+
+  .stat-line {
+    font-size: 1.05rem;
+    margin: 8px 0;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .stat-line i {
+    margin-right: 10px;
+    font-size: 1.2rem;
+  }
+
+  .stat-line strong {
+    margin-left: 6px;
+    color: #222;
+  }
+
+  .weather-block {
+    margin-top: 25px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    background: #f8eebc;
+    box-shadow: inset 0 0 8px rgba(255, 204, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #5e3700;
+    gap: 10px;
+  }
+
+  .weather-block img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .nav-btns {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 30px;
+  }
+
+  .nav-btns a {
+    padding: 10px 22px;
+    font-weight: bold;
+    font-size: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    text-decoration: none;
+  }
+
+  .nav-btns a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-yellow {
+    background-color: #ffcc00;
+    color: #000;
+  }
+
+  .btn-dark {
+    background-color: #3e3e3e;
+    color: #fff;
+  }
+
+  .btn-red {
+    background-color: #cc3333;
+    color: #fff;
+  }
+
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<div class="pc-container">
+  <div class="pc-content">
+    <div class="passport-wrapper">
+      <div class="passport-title">🛂 Survivor Passport</div>
+      <div class="passport-subtitle">Welcome back, survivor. Here’s your current status.</div>
+
+      <div class="stat-line"><i>📅</i> Days Survived:<strong>17</strong></div>
+      <div class="stat-line"><i>🍖</i> Item Scanned:<strong>52 units</strong></div>
+      <div class="stat-line"><i>🧟</i> Enemies Repelled:<strong>12</strong></div>
+      <div class="stat-line">
+        <i>📍</i> Current Location:
+        <a href="{{ url_for('home_blueprint.sample_page') }}" style="margin-left: 6px; color: #aa0000; font-weight: bold; text-decoration: underline;">
+          Abandoned Research Facility
+        </a>
+      </div>
+      
+      <div class="stat-line">
+        <i>💧</i> Water Sources Nearby:
+        <strong style="color:#0044aa;">3 filtered wells</strong>
+      </div>
+      
+      <!-- 🧊 Weather block -->
+      <div class="weather-block">
+        <img src="https://openweathermap.org/img/wn/01d.png" alt="weather icon" />
+        <span>☀️ Weather: <strong>Sunny, 28°C</strong></span>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="nav-btns">
+        <a href="{{ url_for('home_blueprint.inventory') }}" class="btn-dark">📦 Inventory</a>
+        <a href="{{ url_for('home_blueprint.crafting') }}" class="btn-red">🛠️ Crafting</a>
+        <a href="{{ url_for('home_blueprint.sample_page') }}" class="btn-yellow">📍 GPS</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
