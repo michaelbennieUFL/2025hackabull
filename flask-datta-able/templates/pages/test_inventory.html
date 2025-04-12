@@ -5,11 +5,72 @@
   @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-  /* Set the inventory container to scale dynamically */
+  /* Scanner Modal styles */
+  .modal {
+    position: fixed;
+    top: 100px;
+    left: 100px;
+    width: 720px;
+    max-width: 90%;
+    background-color: #f2e6b4;
+    border: 3px dashed #aa8800;
+    border-radius: 10px;
+    box-shadow: 0 0 15px #333;
+    z-index: 9999;
+    display: none; /* hidden by default */
+  }
+
+  #scannerHeader {
+    cursor: move;
+    padding: 12px;
+    background-color: #aa8800;
+    font-weight: bold;
+    color: #2f2f2f;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+  }
+
+  .modal-content {
+    padding: 10px 20px;  /* reduced vertical padding */
+    text-align: center;
+  }
+
+  .close-btn {
+    float: right;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #2f2f2f;
+  }
+
+  .btn-scan {
+    background-color: #aa8800;
+    color: black;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    margin-top: 15px;
+    font-size: 1.1rem;
+  }
+
+  .btn-scan:hover {
+    background-color: #ffcc00;
+    transform: scale(1.05);
+  }
+
+  /* Canvas for annotated image */
+  #annotatedCanvas {
+    display: none;
+    margin: 10px auto 0 auto;
+    max-width: 80%;
+    border: 1px solid #ccc;
+  }
+
+  /* Inventory Container and related styles */
   .inventory {
     width: 90vw;
     max-width: 1200px;
-    /* Use same aspect ratio as before (800/1200 ≈ 0.667) */
     height: calc(70vw * 0.667);
     max-height: 700px;
     background: #c6c6c6;
@@ -20,11 +81,10 @@
     margin-bottom: 2vw;
   }
 
-  /* Headings and texts scale dynamically */
   h1 {
     margin: 1vw 2vw;
     font-family: 'VT323', monospace;
-    font-size: 4vw;  /* Approximately 48px at 1200px width */
+    font-size: 4vw;
     color: #404040;
   }
 
@@ -39,8 +99,6 @@
     cursor: default;
   }
 
-  /* For each row, we use flex so that 10 slots share the available width.
-     We subtract a bit for margins (here, 1vw each side per slot). */
   .slotSpace {
     display: flex;
     justify-content: center;
@@ -48,11 +106,6 @@
     margin: 1vw;
   }
 
-  /*
-    Updated .slot:
-    - Multiplies the calculated width by 0.9 to scale down by 10%
-    - Reduces box-shadow offsets and margin by 10%
-  */
   .slot {
     flex: 0 0 calc(0.85 * ((100% - 2vw) / 10));
     aspect-ratio: 1;
@@ -65,13 +118,11 @@
     margin: 0.45vw;
   }
 
-  /* Special styling for the last row */
   .last-row {
     border: 0.33vw solid gold;
     padding: 0.5vw;
   }
 
-  /* Item sizes are defined relatively */
   .item {
     display: flex;
     flex-direction: column;
@@ -107,7 +158,6 @@
     text-decoration: inherit;
   }
 
-  /* Optional: Ensure the overall content container centers everything */
   .content {
     width: 100%;
     height: 100%;
@@ -116,19 +166,227 @@
     align-items: center;
     justify-content: center;
   }
+
+  /* Open Scanner Button styling */
+  .btn-green {
+    background-color: #4CAF50;
+    color: white;
+    font-size: 1.2rem;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 20px auto;
+    display: block;
+  }
+
+  .btn-green:hover {
+    background-color: #45a049;
+  }
 </style>
 {% endblock extrastyle %}
 
 {% block content %}
+<!-- Scanner Modal (hidden by default) -->
+<div id="scannerModal" class="modal">
+  <div id="scannerHeader">
+    🧟‍♂️Inventory Scanner <span class="close-btn" onclick="closeScanner()">×</span>
+  </div>
+  <div class="modal-content">
+    <!-- Video feed -->
+    <video id="camera-stream" autoplay playsinline style="max-width:90%;"></video>
+    <!-- Capture button -->
+    <button id="capture-btn" class="btn btn-scan">⚠️ Scan Item</button>
+    <!-- Annotated output canvas (will be displayed after analysis) -->
+    <canvas id="annotatedCanvas"></canvas>
+  </div>
+</div>
+
+<!-- JavaScript for Scanner functionality and annotation -->
+<script>
+  // Helper: Convert a data URL to a Blob
+  function dataURLtoBlob(dataURL) {
+    const parts = dataURL.split(',');
+    const base64 = parts[1];
+    const binary = atob(base64);
+    let array = [];
+    for (let i = 0; i < binary.length; i++) {
+      array.push(binary.charCodeAt(i));
+    }
+    return new Blob([new Uint8Array(array)], { type: 'image/png' });
+  }
+
+// Helper: Convert base64 to Image object
+function base64ToImage(base64) {
+  const img = new Image();
+  img.src = base64;
+  return img;
+}
+
+// Helper: Generate random color
+function getRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+// Updated annotateImage function with mask overlay
+function annotateImage(baseImgDataURL, results) {
+  const baseImage = new Image();
+  baseImage.onload = () => {
+    const canvas = document.getElementById('annotatedCanvas');
+    canvas.width = baseImage.width;
+    canvas.height = baseImage.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(baseImage, 0, 0);
+
+    results.forEach(item => {
+      const y0 = item.box_2d[0];
+      const x0 = item.box_2d[1];
+      const y1 = item.box_2d[2];
+      const x1 = item.box_2d[3];
+      const boxWidth = x1 - x0;
+      const boxHeight = y1 - y0;
+
+      // Generate random color
+      const color = getRandomColor();
+
+      // Draw bounding box
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x0, y0, boxWidth, boxHeight);
+
+      // Draw label background
+      ctx.fillStyle = color;
+      ctx.font = "20px Arial";
+      const textWidth = ctx.measureText(item.label).width;
+      ctx.fillRect(x0, y0 - 24, textWidth + 8, 24);
+
+      // Label text
+      ctx.fillStyle = 'white';
+      ctx.fillText(item.label, x0 + 4, y0 - 6);
+
+      // Overlay mask
+      const maskImg = base64ToImage(item.mask);
+      maskImg.onload = () => {
+        ctx.save();
+        ctx.globalAlpha = 0.4; // transparency for mask
+        ctx.drawImage(maskImg, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+      };
+    });
+
+    canvas.style.display = 'block';
+  };
+  baseImage.src = baseImgDataURL;
+}
+
+
+  // Initialize camera stream and capture functionality for the Inventory Scanner
+  window.addEventListener('DOMContentLoaded', () => {
+    const video = document.getElementById('camera-stream');
+    const canvasBuffer = document.createElement('canvas');
+    const captureBtn = document.getElementById('capture-btn');
+
+    // Set up the camera stream
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        alert("Camera access denied or unavailable.");
+        console.error(err);
+      });
+
+    // Capture button sends screenshot to backend and annotates the image
+    captureBtn.addEventListener('click', async () => {
+      // Capture a frame from the video feed
+      canvasBuffer.width = video.videoWidth;
+      canvasBuffer.height = video.videoHeight;
+      const ctx = canvasBuffer.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvasBuffer.width, canvasBuffer.height);
+      const dataURL = canvasBuffer.toDataURL('image/png');
+
+      // Create a Blob from the data URL
+      const blob = dataURLtoBlob(dataURL);
+      const formData = new FormData();
+      formData.append('image', blob, 'screenshot.png');
+
+      try {
+        // Send POST request to backend endpoint for segmentation analysis
+        // Send POST request to backend endpoint on port 5001 for segmentation analysis
+        const response = await fetch('http://127.0.0.1:5001/analyze/segment_items', {
+          method: 'POST',
+          body: formData
+        });
+
+        const results = await response.json();
+        console.log("Segmentation results:", results);
+        // Annotate the image using the segmentation results
+        annotateImage(dataURL, results);
+      } catch (error) {
+        console.error("Error analyzing screenshot:", error);
+        alert("Error analyzing screenshot");
+      }
+    });
+
+    // Set up the Open Scanner button event
+    const openScannerBtn = document.getElementById('openScannerBtn');
+    openScannerBtn.addEventListener('click', () => {
+      document.getElementById('scannerModal').style.display = 'block';
+    });
+  });
+
+  // Function to close the scanner modal
+  function closeScanner() {
+    document.getElementById('scannerModal').style.display = 'none';
+  }
+
+  // Enable draggable functionality for the scanner modal
+  dragElement(document.getElementById("scannerModal"));
+  function dragElement(elmnt) {
+    const header = document.getElementById("scannerHeader");
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    if (header) {
+      header.onmousedown = dragMouseDown;
+    }
+    function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      document.onmousemove = elementDrag;
+    }
+    function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+      elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+    function closeDragElement() {
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+  }
+</script>
+
+<!-- Minecraft Inventory Content -->
 <div class="container">
-  <!-- Optional filler for spacing above the inventory -->
+  <!-- Optional filler above inventory -->
   <div style="margin-bottom: 3vw;">Filler.</div>
 
   <!-- Minecraft Inventory Section -->
   <section class="inventory-section" style="margin-top: 3vw;">
     <div class="content">
       <div class="inventory">
-
         <!-- Row 1 (10 slots) -->
         <div class="slotSpace">
           <div id="slot0" class="slot"></div>
@@ -221,7 +479,7 @@
           <div id="slot29" class="slot"></div>
         </div>
 
-        <!-- Row 4 (10 slots) with a gold border around the entire row -->
+        <!-- Row 4 (10 slots) with a gold border -->
         <div class="slotSpace last-row">
           <div id="slot30" class="slot"></div>
           <div id="slot31" class="slot"></div>
@@ -237,8 +495,9 @@
       </div>
     </div>
   </section>
+  <!-- Open Scanner Button below the inventory/crafting table -->
+  <button id="openScannerBtn" class="btn-green">Open Scanner</button>
 </div>
 
-<!-- Scripts -->
 <script src="{{ url_for('static', filename='assets/js/pages/minecraftInventory.js') }}"></script>
 {% endblock %}
