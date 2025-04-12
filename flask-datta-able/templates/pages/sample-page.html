@@ -1,47 +1,172 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
+<style>
+  body {
+    background-color: #f1ddbf !important;
+  }
+</style>
 
-  <!-- [ Main Content ] start -->
-  <div class="pc-container">
-    <div class="pc-content">
-      <!-- [ breadcrumb ] start -->
-      <div class="page-header">
-        <div class="page-block">
-          <div class="row align-items-center">
-            <div class="col-md-12">
-              <div class="page-header-title">
-                <h5 class="mb-0">Sample Page</h5>
+<div class="pc-container">
+  <div class="pc-content">
+    <div class="row">
+      <div class="col-sm-12">
+
+        <!-- GPS + Compass + Map -->
+        <div id="map-container" class="card mb-4"
+             style="width: 100%; background-color: #1a1a1a; border: 2px solid black; border-radius: 16px; overflow: hidden;">
+          <div class="card-body p-0" style="display: flex; height: 500px;">
+            <div id="dashboard"
+                 style="width: 25%; min-width: 240px; padding: 20px; background-color: #b0aca9; color: black; border-right: 2px solid black; font-family: 'Courier New', monospace; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <h5 style="color: #1a1a1a; font-weight: bold;">GPS TRACKER</h5>
+                <p><strong>Status:</strong> <span id="status">Searching for location...</span></p>
+                <p><strong>Latitude:</strong> <span id="lat">--</span></p>
+                <p><strong>Longitude:</strong> <span id="lon">--</span></p>
+              </div>
+              <div class="text-center">
+                <h5 style="font-size: 20px;">🧭</h5>
+                <div id="compass"
+                     style="margin: 0 auto; width: 150px; height: 150px; border: 2px dashed black; border-radius: 50%; position: relative;">
+                  <div id="needle"
+                       style="width: 4px; height: 70px; background: #ff4d4d; position: absolute; top: 5px; left: 50%; transform: translateX(-50%) rotate(0deg); transform-origin: bottom;"></div>
+                </div>
+                <div style="margin-top: 25px;">
+                  <p style="color: black;"><strong>Direction:</strong> <span id="direction">--</span>°</p>
+                </div>
               </div>
             </div>
-            <div class="col-md-12">
-              <ul class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ url_for('home_blueprint.index') }}">Home</a></li>
-                <li class="breadcrumb-item"><a href="javascript: void(0)">Other</a></li>
-                <li class="breadcrumb-item" aria-current="page">Sample Page</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- [ breadcrumb ] end -->
 
-      <!-- [ Main Content ] start -->
-      <div class="row">
-        <!-- [ sample-page ] start -->
-        <div class="col-sm-12">
-          <div class="card">
-            <div class="card-header">
-              <h5>Hello card</h5>
+            <!-- Map -->
+            <div id="map" style="flex: 1; height: 100%;"></div>
+          </div>
+        </div>
+
+        <!-- Forecast Section -->
+        <div id="forecast-container" class="card mb-4"
+             style="width: 100%; background-color: #1a1a1a; border: 2px solid black; border-radius: 16px; overflow: hidden;">
+          <div class="card-body p-0" style="display: flex; height: 360px;">
+            <div id="weather-summary"
+                 style="width: 25%; min-width: 240px; padding: 20px; background-color: #b0aca9; color: black; border-right: 2px solid black; font-family: 'Courier New', monospace;">
+              <h5 style="font-weight: bold; color: #1a1a1a;">FORECAST</h5>
+              <p><strong>Status:</strong> <span id="weather-status">--</span></p>
+              <p><strong>Date:</strong> <span id="today-date">--</span></p>
+              <p><strong>Today:</strong> <span id="forecast-today">--</span></p>
+              <p><strong>Location:</strong> <span id="forecast-location">--</span></p>
             </div>
-            <div class="card-body">
+
+            <!-- Forecast Cards -->
+            <div id="forecast" style="flex: 1; padding: 20px; overflow-x: auto; display: flex; gap: 15px; color: white;">
+              <!-- Cards will be injected here -->
             </div>
           </div>
         </div>
-        <!-- [ sample-page ] end -->
+
       </div>
-      <!-- [ Main Content ] end -->
     </div>
   </div>
+</div>
 
+<!-- Google Maps JS API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDzvKnGnLs9QWvrruXyQk8r41qXO4J5zyk"></script>
+
+<script>
+  const WEATHER_API_KEY = "ee223a09ef53459bb6c194718251204";
+
+  function updateGPS() {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.watchPosition(function (position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        document.getElementById("status").textContent = "Location acquired";
+        document.getElementById("lat").textContent = lat.toFixed(6);
+        document.getElementById("lon").textContent = lon.toFixed(6);
+
+        const map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: lat, lng: lon },
+          zoom: 15,
+          disableDefaultUI: false,
+        });
+
+        new google.maps.Marker({
+          position: { lat: lat, lng: lon },
+          map: map,
+          title: "You are here",
+        });
+
+        fetchForecast(lat, lon);
+      }, function (error) {
+        document.getElementById("status").textContent = "Error getting location";
+        document.getElementById("weather-status").textContent = "Error";
+      });
+    } else {
+      document.getElementById("status").textContent = "Geolocation not supported";
+      document.getElementById("weather-status").textContent = "Unsupported";
+    }
+  }
+
+  function fetchForecast(lat, lon) {
+    const url = `https://api.weatherapi.com/v1/forecast.json?key=${WEATHER_API_KEY}&q=${lat},${lon}&days=7&aqi=no&alerts=no`;
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        const locationName = `${data.location.name}, ${data.location.country}`;
+        const todayDesc = data.current.condition.text;
+        const todayDate = new Date(data.location.localtime).toLocaleDateString();
+
+        document.getElementById("forecast-location").textContent = locationName;
+        document.getElementById("forecast-today").textContent = todayDesc;
+        document.getElementById("today-date").textContent = todayDate;
+        document.getElementById("weather-status").textContent = "Active";
+
+        const forecastDiv = document.getElementById("forecast");
+        forecastDiv.innerHTML = "";
+
+        data.forecast.forecastday.forEach(day => {
+          const date = day.date;
+          const temp = day.day.avgtemp_c.toFixed(1);
+          const desc = day.day.condition.text;
+          const icon = day.day.condition.icon;
+
+          const card = document.createElement("div");
+          card.style.backgroundColor = "#333";
+          card.style.padding = "10px";
+          card.style.borderRadius = "10px";
+          card.style.minWidth = "120px";
+          card.style.textAlign = "center";
+          card.innerHTML = `
+            <p style="font-weight:bold;">${date}</p>
+            <img src="${icon}" alt="icon">
+            <p>${temp}°C</p>
+            <p style="font-size: 0.8em;">${desc}</p>
+          `;
+          forecastDiv.appendChild(card);
+        });
+      })
+      .catch(err => {
+        console.error("WeatherAPI fetch error:", err);
+        document.getElementById("weather-status").textContent = "Fetch failed";
+      });
+  }
+
+  function smoothJitterCompass() {
+    const needle = document.getElementById("needle");
+    const direction = document.getElementById("direction");
+    const baseAngle = 30;
+
+    setInterval(() => {
+      const jitter = Math.floor(Math.random() * 8) - 3;
+      const angle = baseAngle + jitter;
+      needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+      direction.textContent = angle;
+    }, 1500);
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    updateGPS();
+    smoothJitterCompass();
+  });
+</script>
 {% endblock content %}
