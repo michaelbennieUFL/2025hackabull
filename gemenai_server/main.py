@@ -13,11 +13,13 @@ from google import genai
 from google.genai import types
 
 from gemenai_server.items import item_types
+from flask_cors import CORS
 
 app = Flask(__name__)
 
+CORS(app)
 # Retrieve API key from environment (ensure you set GOOGLE_API_KEY)
-GOOGLE_API_KEY = "AIzaSyBf110U5S4hurLPwycrnjyKbyD9-pdk2yE"
+GOOGLE_API_KEY = "AIzaSyDzDe0okIEmFCAlZ_Yy2mD4oVLVR5SljnI"
 client = genai.Client(api_key=GOOGLE_API_KEY)
 model_name = "gemini-2.5-pro-exp-03-25"
 safety_settings = [
