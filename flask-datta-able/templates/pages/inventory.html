@@ -1,0 +1,42 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+<h1>Inventory</h1>
+<p>Use your camera to scan items into the inventory.</p>
+
+<div style="margin-top: 20px;">
+  <video id="camera-stream" width="100%" autoplay playsinline></video>
+</div>
+
+<div style="margin-top: 10px;">
+  <button id="capture-btn" class="btn btn-primary">📸 Take Photo</button>
+</div>
+
+<div style="margin-top: 10px;">
+  <canvas id="snapshot" width="640" height="480" style="display: none;"></canvas>
+  <img id="preview" src="#" alt="Captured Image" style="max-width: 100%; display: none;">
+</div>
+
+<script>
+  const video = document.getElementById('camera-stream');
+  const canvas = document.getElementById('snapshot');
+  const preview = document.getElementById('preview');
+  const button = document.getElementById('capture-btn');
+
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+    })
+    .catch(err => {
+      alert("Camera access denied or unavailable.");
+      console.error(err);
+    });
+
+  button.addEventListener('click', () => {
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataURL = canvas.toDataURL('image/png');
+    preview.src = dataURL;
+    preview.style.display = 'block';
+  });
+</script>
+{% endblock %}
