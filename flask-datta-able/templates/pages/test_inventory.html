@@ -118,6 +118,11 @@
     margin: 0.45vw;
   }
 
+  .selected {
+  outline: 3px solid red;
+  outline-offset: -3px;
+}
+
   .last-row {
     border: 0.33vw solid gold;
     padding: 0.5vw;
@@ -199,7 +204,9 @@
     <button id="capture-btn" class="btn btn-scan">⚠️ Scan Item</button>
     <!-- Annotated output canvas (will be displayed after analysis) -->
     <canvas id="annotatedCanvas"></canvas>
+    <button id="addItemsBtn" class="btn-green">Add Items</button>
   </div>
+
 </div>
 
 <!-- JavaScript for Scanner functionality and annotation -->
@@ -217,6 +224,7 @@
   }
 
 // Helper: Convert base64 to Image object
+// Helper: Convert base64 mask to Image object
 function base64ToImage(base64) {
   const img = new Image();
   img.src = base64;
@@ -233,7 +241,59 @@ function getRandomColor() {
   return color;
 }
 
-// Updated annotateImage function with mask overlay
+// Helper: Create a colored mask
+function applyColoredMask(ctx, maskImg, color, x0, y0, x1, y1) {
+  const width = x1 - x0;
+  const height = y1 - y0;
+
+  // Off-screen canvas for mask processing
+  const offCanvas = document.createElement('canvas');
+  offCanvas.width = width;
+  offCanvas.height = height;
+  const offCtx = offCanvas.getContext('2d');
+
+  // Draw mask onto off-screen canvas
+  offCtx.drawImage(maskImg, x0, y0, width, height, 0, 0, width, height);
+
+  // Get mask data
+  const maskData = offCtx.getImageData(0, 0, width, height);
+  const maskPixels = maskData.data;
+
+  // Get original image data from main canvas
+  const originalData = ctx.getImageData(x0, y0, width, height);
+  const originalPixels = originalData.data;
+
+  // Convert hex color to RGB
+  const rgbColor = hexToRgb(color);
+
+
+  const transparency=0.4;
+  // Apply color ONLY to pixels explicitly marked by the mask (alpha > 0)
+  for (let i = 0; i < maskPixels.length; i += 4) {
+    if (maskPixels[i + 2] > 0) {
+      originalPixels[i] = originalPixels[i]*(1-transparency)+rgbColor.r*transparency;
+      originalPixels[i + 1] = originalPixels[i+1]*(1-transparency)+rgbColor.g*transparency;
+      originalPixels[i + 2] = originalPixels[i+2]*(1-transparency)+rgbColor.b*transparency;
+      originalPixels[i + 3] = 150; // Slight transparency (adjustable)
+    }
+  }
+
+  // Update main canvas with highlighted pixels
+  ctx.putImageData(originalData, x0, y0);
+}
+
+
+// Helper: Convert hex to RGB
+function hexToRgb(hex) {
+  const bigint = parseInt(hex.substring(1), 16);
+  return {
+    r: (bigint >> 16) & 255,
+    g: (bigint >> 8) & 255,
+    b: bigint & 255
+  };
+}
+
+// Updated annotateImage function
 function annotateImage(baseImgDataURL, results) {
   const baseImage = new Image();
   baseImage.onload = () => {
@@ -259,7 +319,7 @@ function annotateImage(baseImgDataURL, results) {
       ctx.lineWidth = 3;
       ctx.strokeRect(x0, y0, boxWidth, boxHeight);
 
-      // Draw label background
+      // Label background
       ctx.fillStyle = color;
       ctx.font = "20px Arial";
       const textWidth = ctx.measureText(item.label).width;
@@ -269,13 +329,10 @@ function annotateImage(baseImgDataURL, results) {
       ctx.fillStyle = 'white';
       ctx.fillText(item.label, x0 + 4, y0 - 6);
 
-      // Overlay mask
+      // Overlay colored mask
       const maskImg = base64ToImage(item.mask);
       maskImg.onload = () => {
-        ctx.save();
-        ctx.globalAlpha = 0.4; // transparency for mask
-        ctx.drawImage(maskImg, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
+        applyColoredMask(ctx, maskImg, color, x0, y0, x1, y1);
       };
     });
 
@@ -283,6 +340,7 @@ function annotateImage(baseImgDataURL, results) {
   };
   baseImage.src = baseImgDataURL;
 }
+
 
 
   // Initialize camera stream and capture functionality for the Inventory Scanner
@@ -376,6 +434,31 @@ function annotateImage(baseImgDataURL, results) {
       document.onmousemove = null;
     }
   }
+
+  document.addEventListener("DOMContentLoaded", function() {
+
+  const selectedItems = new Set();
+
+  document.querySelectorAll(".item").forEach(item => {
+    item.addEventListener("click", function(e) {
+      e.stopPropagation();
+      item.classList.toggle("selected");
+
+      const itemId = item.id;
+      if (selectedItems.has(itemId)) {
+        selectedItems.delete(itemId);
+      } else {
+        selectedItems.add(itemId);
+      }
+    });
+  });
+
+  document.getElementById("addItemsBtn").addEventListener("click", function() {
+    console.log("Selected items:", Array.from(selectedItems));
+  });
+
+});
+
 </script>
 
 <!-- Minecraft Inventory Content -->
@@ -497,6 +580,7 @@ function annotateImage(baseImgDataURL, results) {
   </section>
   <!-- Open Scanner Button below the inventory/crafting table -->
   <button id="openScannerBtn" class="btn-green">Open Scanner</button>
+
 </div>
 
 <script src="{{ url_for('static', filename='assets/js/pages/minecraftInventory.js') }}"></script>

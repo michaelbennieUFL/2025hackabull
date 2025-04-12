@@ -1,3 +1,5 @@
+
+
 document.addEventListener('DOMContentLoaded', function() {
   let current_slot = null;
   let status_click = false;
