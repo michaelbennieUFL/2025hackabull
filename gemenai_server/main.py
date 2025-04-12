@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import numpy as np
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from PIL import Image, ImageDraw, ImageFont, ImageColor
 
 # Import and initialize the Gemini client
@@ -16,6 +17,7 @@ from items import item_types
 from pydantic import BaseModel
 
 app = Flask(__name__)
+CORS(app)
 
 # Retrieve API key from environment (ensure you set GOOGLE_API_KEY)
 GOOGLE_API_KEY = "AIzaSyBf110U5S4hurLPwycrnjyKbyD9-pdk2yE"
@@ -254,7 +256,7 @@ def analyze_find_recipes():
     
     prompt = (
         f"Using the following materials, setup as a indexed array of the description of the material: {materials_str}, "
-        f"generate three recipes that can be made with these materials. Include the name of the recipe, the index of the materials needed, and the instructions to put the materials in the recipe together."
+        f"generate three recipes that can be made with these materials. Include the name of the recipe, the index of the materials needed, and the instructions to put the materials in the recipe together. When writing the instructions, do not put the index of the materials in the instructions, just write the instructions for the recipe."
         "Return a JSON object following the provided schema: { 'name': string, 'materials': number[], 'crafting': string }[]"
     )
 
@@ -278,9 +280,9 @@ def analyze_find_recipes():
         return jsonify({"error": f"Model generation failed: {str(e)}"}), 500
 
     recipes = [{
-        "name": recipe.name,
-        "materials": [materials[index] for index in recipe.materials],
-        "crafting": recipe.crafting
+        "name": recipe["name"],
+        "materials": [materials[index] for index in recipe["materials"]],
+        "crafting": recipe["crafting"]
     } for recipe in json.loads(response.text)]
 
     return jsonify({"result": recipes})

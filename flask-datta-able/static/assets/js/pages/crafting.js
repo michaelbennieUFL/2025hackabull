@@ -13,7 +13,7 @@ const selectedRecipeObject = {
 };
 
 async function loadRecipes() {
-    recipeList.innerHTML = "";
+    showLoadingAnimation();
 
     const materials = JSON.parse(localStorage.getItem("materials") || "[]");
     if(!materials.length) {
@@ -39,7 +39,7 @@ async function loadRecipes() {
         });
     }
 
-    const response = await fetch("http://localhost:5001/analyze/find_recipes", {
+    const recipes = await fetch("http://localhost:5001/analyze/find_recipes", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -49,70 +49,16 @@ async function loadRecipes() {
             "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With"
         },
         body: JSON.stringify({ "materials": materials.map(material => material.description) })
-    });
+    }).then(res => res.json()).then(res => res.result.map(recipe => ({
+        name: recipe.name,
+        materials: recipe.materials.map(material => materials.find(m => m.description === material)),
+        crafting: recipe.crafting
+    })));
 
-    const data = await response.json();
-    
-    /*const data = [
-        {
-            "name": "Fireplace",
-            "materials": [
-                {
-                    "name": "stone",
-                    "size": "large",
-                    "quantity": 2
-                },
-                {
-                    "name": "stick",
-                    "size": "small",
-                    "quantity": 3
-                },
-                {
-                    "name": "log",
-                    "size": "large",
-                    "quantity": 1
-                }
-            ],
-            "crafting": "Take the stone and stick and log to the crafting table and craft the fireplace."
-        },
-        {
-            "name": "Stone Pickaxe",
-            "materials": [
-                {
-                    "name": "stone",    
-                    "size": "large",
-                    "quantity": 2
-                },
-                {
-                    "name": "stick",
-                    "size": "small",
-                    "quantity": 3
-                }
-            ],
-            "crafting": "Take the stone and stick to the crafting table and craft the stone pickaxe."
-        },
-        {
-            "name": "Stone Axe",
-            "materials": [
-                {
-                    "name": "stone",
-                    "size": "large",
-                    "quantity": 2
-                },
-                {
-                    "name": "stick",
-                    "size": "small",
-                    "quantity": 3
-                }
-            ],
-            "crafting": "Take the stone and stick to the crafting table and craft the stone axe."
-        }
-    ];*/
-    console.log(data);
-
-    for(const recipe of data) {
+    recipeList.innerHTML = "";
+    for(const recipe of recipes) {
         const recipeItem = document.createElement("div");
-        recipeItem.className = "cursor-pointerflex flex-col gap-2 justify-center h-full p-4 shadow-xl bg-white rounded-md hover:shadow-xl hover:shadow-black/20 duration-300 transition-all";
+        recipeItem.className = "cursor-pointer flex flex-col gap-2 justify-center h-full p-4 shadow-xl bg-white rounded-md hover:shadow-xl hover:shadow-black/20 duration-300 transition-all";
 
         const nameElement = document.createElement("h5");
         nameElement.className = "font-bold";
@@ -125,27 +71,36 @@ async function loadRecipes() {
         const materialsElement = document.createElement("div");
         materialsElement.className = "flex flex-row justify-center items-center gap-2";
 
-        for(const material of recipe.materials) {
-            const materialItem = document.createElement("div");
-            materialItem.className = "material-item";
-            materialItem.innerHTML = `${material.name[0].toUpperCase() + material.name.slice(1)} (${material.quantity})`;
-            materialsElement.appendChild(materialItem);
-        }
-        
-        // Add all elements to the recipe item
-        recipeItem.appendChild(nameElement);
-        recipeItem.appendChild(craftingElement);
-        recipeItem.appendChild(materialsElement);
+    for(const material of recipe.materials) {
+        const materialItem = document.createElement("div");
+        materialItem.className = "material-item";
+        materialItem.innerHTML = material.name[0].toUpperCase() + material.name.slice(1);
+        materialsElement.appendChild(materialItem);
+    }
+    
+    // Add all elements to the recipe item
+    recipeItem.appendChild(nameElement);
+    recipeItem.appendChild(craftingElement);
+    recipeItem.appendChild(materialsElement);
 
-        recipeItem.addEventListener("click", () => {
-            selectedRecipeObject.name = recipe.name;
-            selectedRecipeObject.materials = recipe.materials;
-            selectedRecipeObject.crafting = recipe.crafting;
-            displaySelectedRecipe();
-        });
+    recipeItem.addEventListener("click", () => {
+        selectedRecipeObject.name = recipe.name;
+        selectedRecipeObject.materials = recipe.materials;
+        selectedRecipeObject.crafting = recipe.crafting;
+        displaySelectedRecipe();
+    });
 
         recipeList.appendChild(recipeItem);
     }
+}
+
+function showLoadingAnimation() {
+    recipeList.innerHTML = `
+        <div class="flex flex-col items-center justify-center gap-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-500"></div>
+            <p class="text-slate-500">Loading recipes...</p>
+        </div>
+    `;
 }
 
 function displaySelectedRecipe() {
