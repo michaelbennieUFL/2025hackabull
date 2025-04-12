@@ -24,7 +24,7 @@ CORS(app)
 
 # Retrieve API key from environment (ensure you set GOOGLE_API_KEY)
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-model_name = "gemini-2.5-pro-exp-03-25"
+model_name = "gemini-1.5-flash-002"
 safety_settings = [
     types.SafetySetting(
         category="HARM_CATEGORY_DANGEROUS_CONTENT",
