@@ -1,0 +1,244 @@
+{% extends 'layouts/base.html' %}
+
+{% block extrastyle %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  /* Set the inventory container to scale dynamically */
+  .inventory {
+    width: 90vw;
+    max-width: 1200px;
+    /* Use same aspect ratio as before (800/1200 ≈ 0.667) */
+    height: calc(70vw * 0.667);
+    max-height: 700px;
+    background: #c6c6c6;
+    border-radius: 0.5vw;
+    box-shadow: 0.8vw 0.8vw 0 0 #555555, inset 0.67vw 0.67vw 0 0 #fefefe;
+    padding-top: 1vw;
+    padding-left: 1vw;
+    margin-bottom: 2vw;
+  }
+
+  /* Headings and texts scale dynamically */
+  h1 {
+    margin: 1vw 2vw;
+    font-family: 'VT323', monospace;
+    font-size: 4vw;  /* Approximately 48px at 1200px width */
+    color: #404040;
+  }
+
+  .number {
+    font-family: 'VT323', monospace;
+    font-size: 2vw;
+    color: #fefefe;
+    position: relative;
+    text-shadow: 0.4vw 0.8vw 0 0 #333;
+    top: -2vw;
+    right: -0.6vw;
+    cursor: default;
+  }
+
+  /* For each row, we use flex so that 10 slots share the available width.
+     We subtract a bit for margins (here, 1vw each side per slot). */
+  .slotSpace {
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    margin: 1vw;
+  }
+
+  /*
+    Updated .slot:
+    - Multiplies the calculated width by 0.9 to scale down by 10%
+    - Reduces box-shadow offsets and margin by 10%
+  */
+  .slot {
+    flex: 0 0 calc(0.85 * ((100% - 2vw) / 10));
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #8b8b8b;
+    box-shadow: inset 0.225vw 0.225vw 0 rgba(55,55,55,0.8),
+                inset -0.297vw -0.297vw 0 #ffffff;
+    margin: 0.45vw;
+  }
+
+  /* Special styling for the last row */
+  .last-row {
+    border: 0.33vw solid gold;
+    padding: 0.5vw;
+  }
+
+  /* Item sizes are defined relatively */
+  .item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+    height: 90%;
+  }
+
+  .item img {
+    width: 90%;
+  }
+
+  .ghostItem img {
+    width: 90%;
+  }
+
+  .ghostItem .number {
+    top: -1.33vw;
+    right: -0.67vw;
+  }
+
+  .copy {
+    font-family: 'VT323', monospace;
+    font-size: 3vw;
+    width: 90%;
+    display: flex;
+    justify-content: flex-end;
+    color: #333;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+
+  /* Optional: Ensure the overall content container centers everything */
+  .content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+{% endblock extrastyle %}
+
+{% block content %}
+<div class="container">
+  <!-- Optional filler for spacing above the inventory -->
+  <div style="margin-bottom: 3vw;">Filler.</div>
+
+  <!-- Minecraft Inventory Section -->
+  <section class="inventory-section" style="margin-top: 3vw;">
+    <div class="content">
+      <div class="inventory">
+
+        <!-- Row 1 (10 slots) -->
+        <div class="slotSpace">
+          <div id="slot0" class="slot"></div>
+          <div id="slot1" class="slot"></div>
+          <div id="slot2" class="slot">
+            <div class="item" id="wood">
+              <img src="{{ url_for('static', filename='assets/images/items/wood.png') }}" alt="wood">
+              <div class="number">33</div>
+            </div>
+          </div>
+          <div id="slot3" class="slot"></div>
+          <div id="slot4" class="slot"></div>
+          <div id="slot5" class="slot"></div>
+          <div id="slot6" class="slot">
+            <div class="item" id="cobblestone-small">
+              <img src="{{ url_for('static', filename='assets/images/items/cobblestone.png') }}" alt="cobblestone">
+              <div class="number">3</div>
+            </div>
+          </div>
+          <div id="slot7" class="slot"></div>
+          <div id="slot8" class="slot">
+            <div class="item" id="cobblestone-large">
+              <img src="{{ url_for('static', filename='assets/images/items/cobblestone.png') }}" alt="cobblestone">
+              <div class="number">14</div>
+            </div>
+          </div>
+          <div id="slot9" class="slot"></div>
+        </div>
+
+        <!-- Row 2 (10 slots) -->
+        <div class="slotSpace">
+          <div id="slot10" class="slot">
+            <div class="item" id="diamond_sword">
+              <img src="{{ url_for('static', filename='assets/images/items/diamond-sword.png') }}" alt="diamond sword">
+              <div class="number">1</div>
+            </div>
+          </div>
+          <div id="slot11" class="slot">
+            <div class="item" id="steak">
+              <img src="{{ url_for('static', filename='assets/images/items/steak.png') }}" alt="steak">
+              <div class="number">12</div>
+            </div>
+          </div>
+          <div id="slot12" class="slot">
+            <div class="item" id="diamond">
+              <img src="{{ url_for('static', filename='assets/images/items/diamond.png') }}" alt="diamond">
+              <div class="number">33</div>
+            </div>
+          </div>
+          <div id="slot13" class="slot">
+            <div class="item" id="golden_apple">
+              <img src="{{ url_for('static', filename='assets/images/items/apple.gif') }}" alt="golden apple">
+              <div class="number">8</div>
+            </div>
+          </div>
+          <div id="slot14" class="slot">
+            <div class="item" id="iron_ingot">
+              <img src="{{ url_for('static', filename='assets/images/items/iron.png') }}" alt="iron ingot">
+              <div class="number">12</div>
+            </div>
+          </div>
+          <div id="slot15" class="slot">
+            <div class="item" id="pic_diamond">
+              <img src="{{ url_for('static', filename='assets/images/items/diamond-pickaxe.png') }}" alt="diamond pickaxe">
+              <div class="number">1</div>
+            </div>
+          </div>
+          <div id="slot16" class="slot">
+            <div class="item" id="cobblestone-extra">
+              <img src="{{ url_for('static', filename='assets/images/items/cobblestone.png') }}" alt="cobblestone">
+              <div class="number">32</div>
+            </div>
+          </div>
+          <div id="slot17" class="slot"></div>
+          <div id="slot18" class="slot"></div>
+          <div id="slot19" class="slot"></div>
+        </div>
+
+        <!-- Row 3 (10 slots) -->
+        <div class="slotSpace">
+          <div id="slot20" class="slot"></div>
+          <div id="slot21" class="slot"></div>
+          <div id="slot22" class="slot"></div>
+          <div id="slot23" class="slot"></div>
+          <div id="slot24" class="slot"></div>
+          <div id="slot25" class="slot"></div>
+          <div id="slot26" class="slot"></div>
+          <div id="slot27" class="slot"></div>
+          <div id="slot28" class="slot"></div>
+          <div id="slot29" class="slot"></div>
+        </div>
+
+        <!-- Row 4 (10 slots) with a gold border around the entire row -->
+        <div class="slotSpace last-row">
+          <div id="slot30" class="slot"></div>
+          <div id="slot31" class="slot"></div>
+          <div id="slot32" class="slot"></div>
+          <div id="slot33" class="slot"></div>
+          <div id="slot34" class="slot"></div>
+          <div id="slot35" class="slot"></div>
+          <div id="slot36" class="slot"></div>
+          <div id="slot37" class="slot"></div>
+          <div id="slot38" class="slot"></div>
+          <div id="slot39" class="slot"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Scripts -->
+<script src="{{ url_for('static', filename='assets/js/pages/minecraftInventory.js') }}"></script>
+{% endblock %}
