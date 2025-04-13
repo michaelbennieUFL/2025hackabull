@@ -268,23 +268,36 @@ async function updateInventoryDisplay() {
     // Create grid items
     inventory.forEach((item, index) => {
       const itemElement = document.createElement('div');
-      itemElement.className = 'bg-gray-100 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-transform hover:-translate-y-1 shadow-md';
+      itemElement.className = 'inventory-item bg-white rounded-xl p-4 flex flex-col items-center gap-4 shadow-xl hover:shadow-2xl hover:shadow-black/20 duration-300 transition-all cursor-pointer';
       itemElement.dataset.index = index;
       itemElement.onclick = () => showItemDetail(item);
       
-      itemElement.innerHTML = `
-        <div class="w-full mb-2 bg-white rounded-lg">
-          <img src="${item.image}" alt="${item.name}" class="w-full aspect-square object-cover rounded-lg">
-        </div>
-        <span class="font-bold mb-1">${item.name[0].toUpperCase() + item.name.slice(1)}</span>
-        <span class="text-gray-600">${item.description.slice(0, 100)}${item.description.length > 100 ? '...' : ''}</span>
-      `;
+      const imageContainer = document.createElement('div');
+      imageContainer.className = 'w-full aspect-square rounded-xl overflow-hidden bg-amber-50';
+      
+      const image = document.createElement('img');
+      image.className = 'w-full h-full object-cover';
+      image.src = item.image;
+      image.alt = item.name;
+      
+      const nameElement = document.createElement('h3');
+      nameElement.className = 'font-bold text-xl text-amber-900 text-center';
+      nameElement.textContent = item.name[0].toUpperCase() + item.name.slice(1);
+      
+      const descriptionElement = document.createElement('p');
+      descriptionElement.className = 'text-slate-700 text-center text-sm';
+      descriptionElement.textContent = item.description.slice(0, 100) + (item.description.length > 100 ? '...' : '');
+      
+      imageContainer.appendChild(image);
+      itemElement.appendChild(imageContainer);
+      itemElement.appendChild(nameElement);
+      itemElement.appendChild(descriptionElement);
       
       inventoryContainer.appendChild(itemElement);
     });
   } catch (error) {
     console.error('Error fetching inventory:', error);
-    alert('Failed to load inventory');
+    inventoryContainer.innerHTML = '<div class="col-span-4 text-center text-red-500 p-4">Failed to load inventory. Please try again.</div>';
   }
 }
 
