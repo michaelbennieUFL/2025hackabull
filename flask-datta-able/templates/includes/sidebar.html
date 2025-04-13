@@ -52,18 +52,8 @@
         {% endif %}
 
         {% if not current_user.is_authenticated %}
-        <li class="pc-item">
-          <a href="{{ url_for('authentication_blueprint.login') }}" class="pc-link">
-            <span class="pc-micon"><i data-feather="lock"></i></span>
-            <span class="pc-mtext">Login</span>
-          </a>
-        </li>
-        <li class="pc-item">
-          <a href="{{ url_for('authentication_blueprint.register') }}" class="pc-link">
-            <span class="pc-micon"><i data-feather="user-plus"></i></span>
-            <span class="pc-mtext">Register</span>
-          </a>
-        </li>
+  
+  
         {% else %}
         <li class="pc-item">
           <a href="{{ url_for('authentication_blueprint.logout') }}" class="pc-link">

@@ -2,10 +2,6 @@
 
 {% block title %}Main Panel{% endblock title %}
 
-{% extends "layouts/base.html" %}
-
-{% block title %}Main Panel{% endblock title %}
-
 {% block content %}
 <style>
   .passport-wrapper {
@@ -51,6 +47,16 @@
   .stat-line strong {
     margin-left: 6px;
     color: #222;
+  }
+
+  .blinking {
+    animation: blinkingText 1.5s infinite;
+  }
+
+  @keyframes blinkingText {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
   }
 
   .location-box {
@@ -148,32 +154,31 @@
 <div class="pc-container">
   <div class="pc-content">
     <div class="passport-wrapper">
-      <div class="passport-title">🛂 Survivor Passport</div>
+      <div class="passport-title">Survivor Passport</div>
       <div class="passport-subtitle">Welcome back, survivor. Here’s your current status.</div>
 
-      <div class="stat-line"><i>📅</i> Days Survived:<strong>17</strong></div>
+      <div class="stat-line">
+        <i>⏳</i> Times Survived:
+        <strong id="times-survived" class="blinking">Loading...</strong>
+      </div>
       <div class="stat-line"><i>📦</i> Item Scanned:<strong>52 units</strong></div>
       <div class="stat-line"><i>👨🏻‍🤝‍👨🏿</i> People Nearby:<strong>12</strong></div>
 
-      <!-- 📍 Location -->
       <div class="location-box">
         <div id="location-label">📍 Current Location:</div>
         <strong id="location-text">Detecting...</strong>
       </div>
 
-      <!-- 💧 Water -->
       <div class="stat-line">
         <i>💧</i> Water Sources Nearby:
         <strong style="color:#0044aa;">9 <a style="color:#007bff; text-decoration: underline;">filtered wells</a></strong>
       </div>
 
-      <!-- 🌤 Weather -->
       <div class="weather-block" id="weather-block">
         <img id="weather-icon" src="" alt="weather icon" style="display: none;" />
         <span id="weather-info">☁️ Loading weather...</span>
       </div>
 
-      <!-- 🔗 Navigation Buttons -->
       <div class="nav-btns">
         <a href="{{ url_for('home_blueprint.inventory') }}" class="btn-dark">📦 Inventory</a>
         <a href="{{ url_for('home_blueprint.crafting') }}" class="btn-red">🛠️ Crafting</a>
@@ -182,6 +187,27 @@
     </div>
   </div>
 </div>
+
+<script>
+  function updateSurvivalTime() {
+    const startTime = new Date("2025-04-12T12:00:00-04:00");
+    const now = new Date();
+    let diff = Math.floor((now - startTime) / 1000);
+  
+    const d = Math.floor(diff / 86400);
+    diff %= 86400;
+    const h = Math.floor(diff / 3600);
+    diff %= 3600;
+    const m = Math.floor(diff / 60);
+    const s = diff % 60;
+  
+    const output = `${d}d ${h}h ${m}m ${s}s`;
+    document.getElementById("times-survived").innerText = output;
+  }
+  
+  setInterval(updateSurvivalTime, 1000);
+  updateSurvivalTime();
+</script>
 
 <script>
   window.addEventListener('DOMContentLoaded', () => {
@@ -241,5 +267,4 @@
     weatherInfo.innerText = "Geolocation not supported.";
   }
 </script>
-
 {% endblock content %}
