@@ -184,3 +184,11 @@ def test_inventory():
 @blueprint.route('/test_crafting')
 def test_crafting():
     return render_template('pages/test_crafting.html', segment='crafting')
+
+@blueprint.route("/report")
+def report():
+    return render_template("report.html")
+@blueprint.route('/page2')
+def page2():
+    return render_template('Page2.html')
+

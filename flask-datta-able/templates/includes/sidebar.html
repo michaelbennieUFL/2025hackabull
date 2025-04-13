@@ -24,6 +24,13 @@
           </a>
         </li>
         <li class="pc-item">
+          <a href="{{ url_for('home_blueprint.report') }}" class="pc-link">
+            <span class="pc-micon"><i data-feather="book-open"></i></span>
+            <span class="pc-mtext">Conflict Report</span>
+          </a>
+        </li>
+        
+        <li class="pc-item">
           <a href="{{ url_for('home_blueprint.inventory') }}" class="pc-link">
             <span class="pc-micon"><i data-feather="archive"></i></span>
             <span class="pc-mtext">Inventory</span>
@@ -41,7 +48,13 @@
             <span class="pc-mtext">GPS</span>
           </a>
         </li>
-
+        <li class="pc-item">
+          <a href="{{ url_for('home_blueprint.main_panel') }}" class="pc-link">
+            <span class="pc-micon"><i data-feather="layout"></i></span>
+            <span class="pc-mtext">Main Panel</span>
+          </a>
+        </li>
+      
         {% if current_user.is_authenticated %}
         
         {% endif %}

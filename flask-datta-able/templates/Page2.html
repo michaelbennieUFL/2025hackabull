@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ScanCraft - Digital Humanitarian Platform</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background-color: #1b1c1f;
+      color: #f4f4f4;
+      margin: 0;
+      padding: 30px;
+      line-height: 1.7;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #232428;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+    }
+    h1 {
+      font-size: 2rem;
+      color: #00ddaa;
+    }
+    h2 {
+      color: #ffaa00;
+      margin-top: 30px;
+      font-size: 1.3rem;
+    }
+    ul {
+      padding-left: 1.2em;
+    }
+    li {
+      margin-bottom: 10px;
+    }
+    .button-group {
+      margin-top: 40px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .button-group a {
+      padding: 12px 24px;
+      background-color: #ffaa00;
+      color: #000;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      transition: background-color 0.2s ease;
+    }
+    .button-group a:hover {
+      background-color: #ffdd55;
+    }
+  </style>
+</head>
+<body>
+  <div class="container animate__animated animate__fadeIn">
+    <h1>📲 Introducing ScanCraft</h1>
+    <p><strong>ScanCraft</strong> is a lightweight, secure, and scalable humanitarian aid platform designed for conflict zones like Chad. It empowers relief workers and civilians alike by turning technology into survival tools.</p>
+
+    <h2>🛠️ Smart Survival Assistance</h2>
+    <p>One of the core features of ScanCraft is its AI-powered scanning system. By scanning items available to the user—such as scrap metal, cloth, batteries, or containers—ScanCraft intelligently suggests and guides how to <strong>combine them into usable tools or survival items</strong>.</p>
+
+    <p>From purifying water to crafting simple cooking setups or even emergency signaling devices, <strong>ScanCraft teaches survival through what you already have</strong>.</p>
+
+    <h2>🔍 Key Features:</h2>
+    <ul>
+      <li>🛰️ Real-time conflict and territory mapping</li>
+      <li>📦 Inventory scanning and resource logging</li>
+      <li>🤖 AI crafting guide based on scanned items</li>
+      <li>📋 Survivor ID registration & local coordination</li>
+      <li>🔐 Encrypted communication for field teams</li>
+    </ul>
+
+    <div class="button-group">
+        <a href="{{ url_for('home_blueprint.report') }}">⬅️ Back to Crisis Overview</a>
+        <a href="{{ url_for('home_blueprint.main_panel') }}">🏠 Go to Main Panel</a>
+      </div>
+        </div>
+</body>
+</html>
