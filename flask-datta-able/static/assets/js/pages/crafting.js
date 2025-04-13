@@ -3,20 +3,12 @@ const selectedRecipe = document.getElementById("selected-recipe");
 const selectedRecipeName = document.getElementById("selected-recipe-name");
 const selectedRecipeDescription = document.getElementById("selected-recipe-description");
 const selectedRecipeMaterials = document.getElementById("selected-recipe-materials");
-const saveRecipeBtn = document.getElementById("save-recipe-btn");
-const savedCheckmark = document.getElementById("saved-checkmark");
 
-const selectedRecipeObject = {
-    name: "",
-    materials: [],
-    crafting: "",
-    openTime: Date.now()
-};
 
 async function loadRecipes() {
     showLoadingAnimation();
 
-    const materials = JSON.parse(localStorage.getItem("materials") || "[]");
+    const materials = JSON.parse(localStorage.getItem("inventory") || "[]");
     if(!materials.length) {
         materials.push({
             "name": "stone",
@@ -66,6 +58,7 @@ async function loadRecipes() {
         const recipeItem = document.createElement("div");
         recipeItem.className = "cursor-pointer flex-1 flex flex-col gap-2 justify-center h-full p-4 shadow-xl bg-white rounded-md hover:shadow-xl hover:shadow-black/20 duration-300 transition-all";
 
+
         const nameElement = document.createElement("h5");
         nameElement.className = "font-bold";
         nameElement.innerHTML = `${recipe.name}`;
@@ -80,7 +73,11 @@ async function loadRecipes() {
         for(const material of recipe.materials) {
             const materialItem = document.createElement("div");
             materialItem.className = "material-item";
+
+            materialItem.innerHTML = `${material.name[0].toUpperCase() + material.name.slice(1)} (${material.quantity})`;
+
             materialItem.innerHTML = material.name[0].toUpperCase() + material.name.slice(1);
+
             materialsElement.appendChild(materialItem);
         }
         
@@ -89,6 +86,7 @@ async function loadRecipes() {
         recipeItem.appendChild(craftingElement);
         recipeItem.appendChild(materialsElement);
 
+
         recipeItem.addEventListener("click", () => {
             selectedRecipeObject.name = recipe.name;
             selectedRecipeObject.materials = recipe.materials;
@@ -96,10 +94,21 @@ async function loadRecipes() {
             displaySelectedRecipe();
         });
 
+
         recipeList.appendChild(recipeItem);
     }
 }
 
+loadRecipes();
+
+function saveSelectedRecipe() {
+    console.log("saveSelectedRecipe");
+}
+
+function closeSelectedRecipe() {
+    selectedRecipe.style.display = "none";
+    console.log("closeSelectedRecipe");
+}
 function showLoadingAnimation() {
     recipeList.innerHTML = `
         <div class="flex flex-col items-center justify-center gap-4">
@@ -141,8 +150,6 @@ document.addEventListener("click", (event) => {
         closeSelectedRecipe();
     }
 });
-
-loadRecipes();
 
 function saveSelectedRecipe() {
     // Get existing saved recipes or initialize empty array
