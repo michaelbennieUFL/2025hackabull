@@ -37,3 +37,4 @@ apps/static/assets/.temp
 
 node_modules/
 yarn.lock
+gemenai_sever/*.jpg
