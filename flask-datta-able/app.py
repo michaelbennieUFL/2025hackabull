@@ -4,6 +4,9 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -15,7 +18,6 @@ from apps import create_app, db
 
 # WARNING: Don't run with debug turned on in production!
 DEBUG = (os.getenv('DEBUG', 'False') == 'True')
-
 get_config_mode = 'Debug' if DEBUG else 'Production'
 
 try:
