@@ -392,59 +392,6 @@ def analyze_check_requirements():
     return jsonify(missing_items)
 
 
-@app.route('/analyze/find_recipes', methods=['POST'])
-def analyze_find_recipes():
-    """
-    Expects a POST with:
-      - a form field "materials": a list of materials
-    Returns a JSON list of recipes.
-    """
-
-    try:
-        data = request.get_json()
-    except Exception as e:
-        return jsonify({"error": f"Invalid JSON data: {str(e)}"}), 400
-    
-    if "materials" not in data:
-        return jsonify({"error": "No materials provided"}), 400
-
-    materials = data["materials"]
-
-    # Format materials into numbered string
-    materials_str = ", ".join(f"\n{i}: {material}" for i, material in enumerate(materials))
-    
-    prompt = (
-        f"Using the following materials, setup as a indexed array of the description of the material: {materials_str}, "
-        f"generate three recipes that can be made with these materials. Include the name of the recipe, the index of the materials needed, and the instructions to put the materials in the recipe together. When writing the instructions, do not put the index of the materials in the instructions, just write the instructions for the recipe."
-        "Return a JSON object following the provided schema: { 'name': string, 'materials': number[], 'crafting': string }[]"
-    )
-
-    class Recipe(BaseModel):
-        name: str
-        materials: list[int]
-        crafting: str
-
-    try:
-        response = client.models.generate_content(
-            model="gemini-1.5-flash-002",
-            contents=[prompt],
-            config=types.GenerateContentConfig(
-                response_mime_type='application/json',
-                response_schema=list[Recipe],
-                temperature=0.5,
-                safety_settings=safety_settings,
-            ),
-        )
-    except Exception as e:
-        return jsonify({"error": f"Model generation failed: {str(e)}"}), 500
-
-    recipes = [{
-        "name": recipe["name"],
-        "materials": [materials[index] for index in recipe["materials"]],
-        "crafting": recipe["crafting"]
-    } for recipe in json.loads(response.text)]
-
-    return jsonify({"result": recipes})
 
 @app.route('/analyze/find_recipes', methods=['GET'])
 def analyze_find_recipes():
