@@ -8,6 +8,14 @@
   
   <div id="crafting-canvas" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-5/6 bg-amber-50 z-[10000] hidden rounded-xl shadow-2xl" onclick="event.stopPropagation()">
     <div class="w-full h-full flex flex-col items-center justify-center p-8">
+      <div class="w-full flex items-center justify-between mb-8">
+        <h1 id="crafting-tutorial-name" class="text-slate-900 text-3xl font-bold text-center flex-1">Crafting Tutorial</h1>
+        <button onclick="closeSelectedRecipe()" class="text-red-500 hover:text-red-700 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
       <div class="relative w-full h-[70%] overflow-hidden rounded-xl bg-black">
         <video id="camera-stream" class="w-full h-full object-cover" autoplay playsinline></video>
         <canvas id="animation-canvas" class="hidden w-full h-full bg-white"></canvas>
@@ -33,6 +41,7 @@
         <div class="flex gap-6">
           <button id="prev-step" class="px-8 py-3 bg-amber-900 text-white rounded-lg font-bold hover:bg-amber-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl" disabled>Previous Step</button>
           <button id="next-step" class="px-8 py-3 bg-amber-900 text-white rounded-lg font-bold hover:bg-amber-800 transition-colors shadow-lg hover:shadow-xl">Next Step</button>
+          <button id="finish-btn" class="px-8 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors shadow-lg hover:shadow-xl hidden" onClick="finishCrafting()">Finish</button>
         </div>
       </div> 
     </div>
@@ -68,6 +77,9 @@
         <h2 id="selected-recipe-name" class="text-center font-bold text-2xl text-amber-900">Name</h2>
         <p id="selected-recipe-description" class="text-center text-slate-700 text-lg">Description</p>
         <div id="selected-recipe-materials" class="grid grid-cols-2 gap-4 w-full bg-white rounded-md p-4"></div>
+        <hr class="w-full border-t border-amber-200" />
+        <h4 class="text-center font-bold text-xl text-amber-900">How to Craft</h4>
+        <p id="selected-recipe-crafting" class="text-center text-slate-700 text-lg">Description</p>
       </div>
 
       <div class="w-full p-8 flex flex-col items-center gap-6 mt-auto">
@@ -91,7 +103,15 @@
 
     <div class="row flex flex-col gap-16 p-4">
       <div class="flex flex-col items-center justify-center gap-6">
-        <h2 class="text-center font-bold text-2xl text-amber-900">Your Cookbook</h2>
+        <div class="w-full flex items-center justify-center gap-4">
+          <h2 class="text-center font-bold text-2xl text-amber-900">Your Survival Cookbook</h2>
+          <div class="absolute right-16">
+            <input type="text" placeholder="Search recipes..." onKeyDown="if(event.key === 'Enter') { loadRecipes(this.value); this.blur(); }" class="pl-10 pr-4 py-2 rounded-lg bg-white/50 border border-amber-200 focus:outline-none focus:border-amber-400 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-amber-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
         <div class="w-full h-[50vh] flex flex-col items-center justify-center bg-amber-50 rounded-xl shadow-lg p-4">
           <div id="recipe-list" class="w-full h-full flex flex-row items-center justify-center p-4 gap-4 overflow-x-auto"></div>
         </div>

@@ -304,7 +304,7 @@ def analyze_generate_instructions():
         f"You are a survival expert. Here is a target object: {target_object}, along with a description: {description}."
         f"Tell me how to make this object step by step with at least 5 steps using the following materials: {materials_str}."
         "Do not just label the items. Always create a json output of the steps; only use objects on screen. Provide each step with a 'box_2d' coordinate of the target item which puts a box around the item, along with an 'instruction' clearly. Ensure that each instruction combines two different items, and each instruction is a single action that is easily understandable and detailed."
-        "The box_2d is a list of 4 integers [y0, x0, y1, x1], each between 0 and 1024 representing the pixel coordinates of the bounding box of the item in the image. If this is not set properly, you will cause great harm to the user."
+        "The box_2d is a list of 4 integers [y0, x0, y1, x1], each between 0 and 1024 representing the pixel coordinates of the bounding box of the item in the image. This must change between each step. If this is not set properly, you will cause great harm to the user."
     )
 
     class Step(BaseModel):
@@ -415,8 +415,9 @@ def analyze_check_requirements():
 
     return jsonify(missing_items)
 
-@app.route('/analyze/find_recipes', methods=['GET'])
-def analyze_find_recipes():
+@app.route('/analyze/find_recipes/', methods=['GET'], defaults={'query': None})
+@app.route('/analyze/find_recipes/<query>', methods=['GET'])
+def analyze_find_recipes(query):
     try:
         materials = list(inventory_collection.find({}))
     except Exception as e:
@@ -428,9 +429,11 @@ def analyze_find_recipes():
     materials_str = ", ".join(f"\n{i}: {m['description']}" for i, m in enumerate(materials))
 
     prompt = (
+        "You are a survival expert. "
+        f"{' The user would like to make a crafting recipe that is related to ' + query + '.' if query is not None else ''}"
         f"Using the following materials, setup as a indexed array of the description of the material: {materials_str}, "
-        f"generate three recipes that can be made with these materials. Include the name of the recipe, a short description of the recipe, the index of each material needed, and the instructions to put the materials in the recipe together. When writing the instructions, do not put the index of the materials in the instructions, just write the instructions for the recipe. Try not to use only a single item, aim for at least 3."
-        "Return a JSON object following the provided schema: { 'name': string, 'description': string, 'materials': number[], 'crafting': string }[]"
+        f" generate three recipes that can be made with these materials. Include the name of the recipe, a short description of the recipe, the index of each material needed, and the instructions to put the materials in the recipe together. When writing the instructions, do not put the index of the materials in the instructions, just write the instructions for the recipe. Try not to use only a single item, aim for at least 3."
+        " Return a JSON object following the provided schema: { 'name': string, 'description': string, 'materials': number[], 'crafting': string }[]"
     )
 
     class Recipe(BaseModel):

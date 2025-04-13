@@ -3,6 +3,7 @@ const selectedRecipe = document.getElementById("selected-recipe");
 const selectedRecipeName = document.getElementById("selected-recipe-name");
 const selectedRecipeDescription = document.getElementById("selected-recipe-description");
 const selectedRecipeMaterials = document.getElementById("selected-recipe-materials");
+const selectedRecipeCrafting = document.getElementById("selected-recipe-crafting");
 const saveRecipeBtn = document.getElementById("save-recipe-btn");
 const savedCheckmark = document.getElementById("saved-checkmark");
 const loadingSpinner = document.getElementById("loading-spinner");
@@ -25,11 +26,11 @@ function dataURLtoBlob(dataURL) {
     }
     return new Blob([new Uint8Array(array)], { type: 'image/png' });
 }
-  
-async function loadRecipes() {
+
+async function loadRecipes(query = "") {
     showLoadingAnimation();
 
-    const recipes = await fetch("http://localhost:5001/analyze/find_recipes").then(res => res.json()).then(res => res.result.map(recipe => ({
+    const recipes = await fetch("http://localhost:5001/analyze/find_recipes/" + query).then(res => res.json()).then(res => res.result.map(recipe => ({
         name: recipe.name,
         description: recipe.description,
         materials: recipe.materials,
@@ -182,7 +183,8 @@ function displaySelectedRecipe() {
     selectedRecipeObject.openTime = Date.now();
     selectedRecipe.style.width = "30%";
     selectedRecipeName.innerHTML = selectedRecipeObject.name;
-    selectedRecipeDescription.innerHTML = selectedRecipeObject.crafting;
+    selectedRecipeDescription.innerHTML = selectedRecipeObject.description;
+    selectedRecipeCrafting.innerHTML = selectedRecipeObject.crafting;
     selectedRecipeMaterials.replaceChildren();
 
     // Check if recipe is already saved
@@ -328,6 +330,7 @@ async function loadSavedRecipes() {
 }
 
 async function craftRecipe() {
+    document.getElementById('crafting-tutorial-name').innerHTML = "Crafting Tutorial for a " + selectedRecipeObject.name;
     closeSelectedRecipe();
     craftingCanvas.classList.remove("hidden");
     modalOverlay.classList.remove("hidden");
@@ -466,6 +469,8 @@ async function craftRecipe() {
         }
     }
 
+    const finishBtn = document.getElementById('finish-btn');
+
     function updateStep(stepIndex) {
         currentStep = stepIndex;
         const step = steps[stepIndex];
@@ -475,6 +480,13 @@ async function craftRecipe() {
         
         prevStepBtn.disabled = currentStep === 0;
         nextStepBtn.disabled = currentStep === steps.length - 1;
+        if(nextStepBtn.disabled) {
+            nextStepBtn.classList.add("hidden");
+            finishBtn.classList.remove("hidden");
+        } else {
+            nextStepBtn.classList.remove("hidden");
+            finishBtn.classList.add("hidden");
+        }
 
         const [y0start, x0start, y1start, x1start] = steps[currentStep].box_2d;
         const radiusStart = Math.hypot(x1start - x0start, y1start - y0start) / 2;
@@ -528,3 +540,29 @@ async function craftRecipe() {
 window.addEventListener("load", () => {
     loadSavedRecipes();
 });
+
+function finishCrafting() {
+    // Delete each material
+    const deletePromises = Array.from(selectedRecipeObject.materials).map(material => {
+        const description = material.description;
+        return fetch('/analyze/delete_item', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                description: description
+            })
+        });
+    });
+
+    // Wait for all deletions to complete then reload cookbook
+    Promise.all(deletePromises)
+        .then(() => {
+            loadSavedRecipes();
+        })
+        .catch(error => {
+            console.error('Error deleting materials:', error);
+        });
+    closeSelectedRecipe();
+}
