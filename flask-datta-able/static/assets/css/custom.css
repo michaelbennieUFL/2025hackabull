@@ -3,3 +3,10 @@
 Custom SCSS
 
 */
+
+:root {
+    --pc-sidebar-background: #78938a;
+    --pc-sidebar-shadow: 1px 0 20px 0 #78938a;
+    --pc-sidebar-color: black;
+    --pc-header-background: #efefef;
+}
