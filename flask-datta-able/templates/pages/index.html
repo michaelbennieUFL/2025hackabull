@@ -97,28 +97,28 @@
 
       <div class="dashboard-row">
         <div class="animated-card">
-          <span class="label">📦 Resources Collected Today:</span>
-          <span class="value">182 units (metal, circuits, food)</span>
+          <span class="label">📦 Resources Scanned Today:</span>
+          <span class="value">52 units (metal, circuits, food)</span>
         </div>
         <div class="animated-card">
-          <span class="label">🧟 Enemies Encountered:</span>
-          <span class="value">12 mutants repelled</span>
+          <span class="label">👨🏻‍🤝‍👨🏿 People Detected:</span>
+          <span class="value">12 </span>
         </div>
         <div class="animated-card">
-          <span class="label">💧 Water Purified:</span>
-          <span class="value">93 liters</span>
+          <span class="label">💡 Survival Tip #1:</span>
+          <span class="value">Always boil water before drinking, unless sourced from a known filtered well.</span>
         </div>
         <div class="animated-card">
-          <span class="label">⚙️ Crafting Success Rate:</span>
-          <span class="value">88%</span>
+          <span class="label">💡 Survival Tip #2:</span>
+          <span class="value">Crafting at night reduces success rate—light and stable shelter increase effectiveness.</span>
         </div>
         <div class="animated-card">
-          <span class="label">📡 System Broadcast:</span>
-          <span class="value">“Severe radiation storm approaching Zone 7.”</span>
+          <span class="label">💡 Survival Tip #3:</span>
+          <span class="value">Watch for changing skies—green glow often precedes a radiation surge.</span>
         </div>
         <div class="animated-card">
-          <span class="label">📍 Location Safety:</span>
-          <span class="value">Tampa Safe Zone – Level 3 Stability</span>
+          <span class="label">💡 Survival Tip #4:</span>
+          <span class="value">Tampa Safe Zone holds for now, but never stay in one place for more than 3 days.</span>
         </div>
       </div>
 
@@ -128,8 +128,11 @@
       </div>
 
       <div class="chart-box mt-4">
-        <h4>📊 Item Found over time</h4>
+        <h4>📊 Item Found Over Time <span style="font-size: 0.7em; color: #aaa;">(Hover for details)</span></h4>
         <div id="chart-crafting"></div>
+        <p style="color:#bbb; font-size: 0.9em; margin-top:10px;">
+          📌 Tip: Resource spikes often occur right after enemy raids—be alert and harvest fast.
+        </p>
       </div>
     </div>
   </div>
@@ -143,7 +146,6 @@
 <script src="{{ url_for('static', filename='assets/js/plugins/world.js') }}"></script>
 
 <script>
-// 地图初始化
 new jsVectorMap({
   selector: "#survivor-map",
   map: "world",
@@ -157,15 +159,31 @@ new jsVectorMap({
   },
   markers: [
     { name: "Tampa Safe Zone", coords: [27.95, -82.46] },
-    { name: "Radiation Zone 7", coords: [28.05, -82.4] }
+    { name: "Radiation Zone 7", coords: [28.05, -82.4] },
+    { name: "New York Outpost", coords: [40.7128, -74.0060] },
+    { name: "Paris Watchpoint", coords: [48.8566, 2.3522] },
+    { name: "Tokyo Relay", coords: [35.6895, 139.6917] },
+    { name: "Cape Town Outpost", coords: [-33.9249, 18.4241] },
+    { name: "Moscow Signal", coords: [55.7558, 37.6173] },
+    { name: "Rio Listening Post", coords: [-22.9068, -43.1729] },
+    { name: "Sydney Refuge", coords: [-33.8688, 151.2093] },
+    { name: "Seoul Ping Node", coords: [37.5665, 126.9780] },
+    { name: "London Outpost", coords: [51.5074, -0.1278] },
+    { name: "Toronto Base", coords: [43.651070, -79.347015] }
   ],
   markerStyle: {
-    initial: { fill: "#ff4444" },
-    hover: { fill: "#ffcc00" }
+    initial: {
+      fill: "#ff4444",
+      stroke: "#222",
+      r: 6
+    },
+    hover: {
+      fill: "#ffcc00"
+    }
   }
 });
 
-// 图表初始化
+
 const options = {
   chart: {
     type: "area",
@@ -175,10 +193,17 @@ const options = {
   },
   series: [{
     name: "Crafting Success",
-    data: [78, 82, 85, 88, 87, 89, 88]
+    data: [42, 37, 85, 49, 32, 28, 52]
   }],
   xaxis: {
     categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  },
+  tooltip: {
+    y: {
+      formatter: function (val) {
+        return val + "% success rate";
+      }
+    }
   },
   colors: ["#ffaa00"],
   fill: {
