@@ -4,6 +4,7 @@
 
 {% block content %}
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Jersey+15');
   .passport-wrapper {
     animation: fadeInUp 1s ease-out;
     background: rgba(255, 248, 220, 0.95);
@@ -18,10 +19,12 @@
   }
 
   .passport-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: bold;
     color: #5e3700;
     margin-bottom: 10px;
+    font-family: 'Jersey 15', monospace;
+    letter-spacing: 0.08em;
   }
 
   .passport-subtitle {
@@ -74,7 +77,7 @@
   #location-text {
     display: inline-block;
     font-weight: bold;
-    color: #aa0000;
+    color: #5e3700;
     font-size: 0.95rem;
     max-width: 90%;
     word-wrap: break-word;
@@ -110,13 +113,17 @@
   }
 
   .nav-btns a {
-    padding: 10px 22px;
+    padding: 10px;
     font-weight: bold;
     font-size: 1rem;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
     text-decoration: none;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
   }
 
   .nav-btns a:hover {
@@ -125,18 +132,36 @@
   }
 
   .btn-yellow {
-    background-color: #ffcc00;
-    color: #000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    background-color: #474d5a;
+    color: #fff;
+    flex: 1;
+    text-align: center;
+    font-family: 'Jersey 15', monospace;
+    letter-spacing: 0.08em;
+    font-size: 1.4rem;
   }
 
   .btn-dark {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     background-color: #3e3e3e;
     color: #fff;
+    flex: 1;
+    text-align: center;
+    font-family: 'Jersey 15', monospace;
+    letter-spacing: 0.08em;
+    font-size: 1.4rem;
   }
 
   .btn-red {
-    background-color: #cc3333;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    background-color: #5e4848;
     color: #fff;
+    flex: 1;
+    text-align: center;
+    font-family: 'Jersey 15', monospace;
+    letter-spacing: 0.08em;
+    font-size: 1.4rem;
   }
 
   @keyframes fadeInUp {
@@ -167,11 +192,6 @@
       <div class="location-box">
         <div id="location-label">📍 Current Location:</div>
         <strong id="location-text">Detecting...</strong>
-      </div>
-
-      <div class="stat-line">
-        <i>💧</i> Water Sources Nearby:
-        <strong style="color:#0044aa;">9 <a style="color:#007bff; text-decoration: underline;">filtered wells</a></strong>
       </div>
 
       <div class="weather-block" id="weather-block">
