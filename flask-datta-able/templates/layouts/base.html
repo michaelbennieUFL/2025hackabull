@@ -1,41 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    
-    <title>{% block title %}{% endblock title %} | Snapcraft </title>
+<head>
+  <title>{% block title %}{% endblock title %} | Snapcraft</title>
+  <link rel="canonical" href="https://app-generator.dev/product/datta-able/flask/" />
+  {% include "includes/head.html" %}
+  {% block extrastyle %}{% endblock extrastyle %}
+  <style>
+    #zombie {
+      position: absolute;
+      width: 80px;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.1s linear;
+    }
 
-    <link rel="canonical" href="https://app-generator.dev/product/datta-able/flask/" />
+    .blood-dot {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background-color: rgba(150, 0, 0, 0.7);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      animation: fadeOut 2.5s forwards;
+    }
 
-    {% include "includes/head.html" %}
-    {% block extrastyle %}{% endblock extrastyle %}
+    @keyframes fadeOut {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.3); }
+    }
+  </style>
+</head>
 
-  </head>
+<body data-pc-preset="preset-1" data-pc-sidebar-caption="true" data-pc-direction="ltr" data-pc-theme="light">
+  {% block loader %}
+    {% include "includes/loader.html" %}
+  {% endblock loader %}
 
-  <body data-pc-preset="preset-1" data-pc-sidebar-caption="true" data-pc-direction="ltr" data-pc-theme="light">
-    {% block loader %}
-      {% include "includes/loader.html" %}
-    {% endblock loader %}
+  {% block sidebar %}
+    {% include "includes/sidebar.html" %}
+  {% endblock sidebar %}
 
-    {% block sidebar %}
-        {% include "includes/sidebar.html" %}
-    {% endblock sidebar %}
+  {% block navigation %}
+    {% include "includes/navigation.html" %}
+  {% endblock navigation %}
 
-    {% block navigation %}
-      {% include "includes/navigation.html" %}
-    {% endblock navigation %}
+  <!-- 🌆 背景动图 -->
+  <div style="position: fixed; bottom: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;">
+    <img src="{{ url_for('static', filename='assets/images/background.gif') }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.2;">
+  </div>
 
-    <div style="position: fixed; bottom: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;">
-        <img src="{{ url_for('static', filename='assets/images/background.gif') }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.2;">
-    </div>
+  <!-- 🧟‍♂️ 僵尸跟随 -->
+  <img id="zombie" src="{{ url_for('static', filename='assets/images/user/ZombieFollow.gif') }}" alt="Zombie" />
 
-    {% block content %}{% endblock content %}
-     
-    {% block footer %}
-      {% include "includes/footer.html" %}
-    {% endblock footer %}
+  {% block content %}{% endblock content %}
 
-    {% include "includes/scripts.html" %}
-    {% block extra_js %}{% endblock extra_js %}
-  
-  </body>
+  {% block footer %}
+    {% include "includes/footer.html" %}
+  {% endblock footer %}
+
+  {% include "includes/scripts.html" %}
+
+  <script>
+    const zombie = document.getElementById('zombie');
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let zombieX = window.innerWidth / 2;
+    let zombieY = window.innerHeight / 2;
+    let prevX = zombieX;
+    let facingLeft = false;
+
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    function spawnBloodBehind(x, y) {
+      const blood = document.createElement('div');
+      blood.className = 'blood-dot';
+
+      const backOffset = 20;
+      const spawnX = x + (facingLeft ? backOffset : -backOffset) + (Math.random() - 0.5) * 10;
+      const spawnY = y + 30 + (Math.random() - 0.5) * 10;
+
+      blood.style.left = `${spawnX}px`;
+      blood.style.top = `${spawnY}px`;
+
+      document.body.appendChild(blood);
+      setTimeout(() => blood.remove(), 2500);
+    }
+
+    function animateZombie() {
+      const speed = 0.05;
+      zombieX += (mouseX - zombieX) * speed;
+      zombieY += (mouseY - zombieY) * speed;
+
+      zombie.style.left = `${zombieX - 40}px`;
+      zombie.style.top = `${zombieY - 40}px`;
+
+      if (zombieX < prevX) {
+        facingLeft = true;
+        zombie.style.transform = 'scaleX(-1)';
+      } else {
+        facingLeft = false;
+        zombie.style.transform = 'scaleX(1)';
+      }
+
+      spawnBloodBehind(zombieX, zombieY);
+      prevX = zombieX;
+      requestAnimationFrame(animateZombie);
+    }
+
+    animateZombie();
+  </script>
+
+  {% block extra_js %}{% endblock extra_js %}
+</body>
 </html>
