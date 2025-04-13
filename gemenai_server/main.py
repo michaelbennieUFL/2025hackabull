@@ -24,18 +24,23 @@ from pymongo import MongoClient
 
 # Load MongoDB URI from environment or use fallback
 MONGO_URI = os.environ.get('MONGO_URI', "mongodb+srv://anthonycastillolmk:vXQNYY9LpifXg3e9@sandbox.7gnovef.mongodb.net/?retryWrites=true&w=majority&appName=Sandbox")
-client = MongoClient(MONGO_URI)
-db = client["Hackabull"]             # use the Hackabull database
-inventory_collection = db["Inventory"]  # use the Gemini collection for inventory
+
+# Create a dedicated MongoDB client
+mongo_client = MongoClient(MONGO_URI,)
+db = mongo_client["Hackabull"]             # Use the Hackabull database
+inventory_collection = db["Inventory"]      # Use the Inventory collection
 saved_recipes_collection = db["SavedRecipes"]
+
+
+# Create a separate client for your genai usage
+genai_client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY", "AIzaSyDzDe0okIEmFCAlZ_Yy2mD4oVLVR5SljnI"))
 
 app = Flask(__name__)
 CORS(app)
 
-# Retrieve API key from environment (ensure you set GOOGLE_API_KEY)
-client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY", "AIzaSyDzDe0okIEmFCAlZ_Yy2mD4oVLVR5SljnI"))
 
-model_name = "gemini-2.0-pro-exp"
+model_name = "gemini-2.5-pro-exp-03-25"
+low_power_model_name = "gemini-1.5-flash-8b"
 
 safety_settings = [
     types.SafetySetting(
@@ -57,6 +62,24 @@ def parse_json(json_output: str):
             json_output = json_output.split("```")[0]
             break
     return json_output
+
+
+def test_connection():
+    try:
+        # Simple command to check if server is available
+        server_info = mongo_client.server_info()  # This will trigger an exception if connection fails
+        print("Successfully connected to MongoDB")
+    except Exception as e:
+        print("Failed to connect to MongoDB:", e)
+        return
+
+    # Optionally, get some basic collection stats
+    inv_count = inventory_collection.count_documents({})
+    recipes_count = saved_recipes_collection.count_documents({})
+    print(f"Inventory documents count: {inv_count}")
+    print(f"Saved Recipes documents count: {recipes_count}")
+
+test_connection()
 
 @dataclass(frozen=True)
 class SegmentationMask:
@@ -181,7 +204,7 @@ def analyze_segment_items():
         description: str
 
     try:
-        response_json = client.models.generate_content(
+        response_json = genai_client.models.generate_content(
             model=model_name,
             contents=[prompt, im],
             config=types.GenerateContentConfig(
@@ -290,7 +313,7 @@ def analyze_generate_instructions():
         instruction: str
 
     try:
-        response = client.models.generate_content(
+        response = genai_client.models.generate_content(
             model=model_name,
             contents=[prompt, im],
             config=types.GenerateContentConfig(
@@ -375,8 +398,8 @@ def analyze_check_requirements():
     )
 
     try:
-        response = client.models.generate_content(
-            model=model_name,
+        response = genai_client.models.generate_content(
+            model=low_power_model_name,
             contents=[prompt, im],
             config=types.GenerateContentConfig(
                 temperature=0.3,
@@ -418,8 +441,8 @@ def analyze_find_recipes():
         crafting: str
 
     try:
-        response = client.models.generate_content(
-            model=model_name,
+        response = genai_client.models.generate_content(
+            model=low_power_model_name,
             contents=[prompt],
             config=types.GenerateContentConfig(
                 response_mime_type='application/json',
@@ -503,7 +526,7 @@ def analyze_question():
         contents.append(image)
 
     try:
-        response = client.models.generate_content(
+        response = genai_client.models.generate_content(
             model=model_name,
             contents=contents,
             config=types.GenerateContentConfig(
