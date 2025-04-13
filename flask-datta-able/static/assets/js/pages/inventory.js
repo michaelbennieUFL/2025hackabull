@@ -211,42 +211,64 @@ async function storeAnnotation(annotation) {
   // Store the cropped image data URL with transparency
   annotation.image = tempCanvas.toDataURL('image/png');
 
-  // Call your function to add the item to inventory
-  const inventory = JSON.parse(localStorage.getItem('inventory') ?? "[]");
-  inventory.push({
-    name: annotation.label,
-    quantity: 1,
-    image: annotation.image,
-    description: annotation.description
-  });
-  localStorage.setItem('inventory', JSON.stringify(inventory));
+  // Send the item data to the server
+  try {
+    const response = await fetch('http://127.0.0.1:5001/analyze/add_item', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: annotation.label,
+        description: annotation.description,
+        image: annotation.image
+      })
+    });
 
-  // Update the inventory display
-  updateInventoryDisplay();
+    if (!response.ok) {
+      throw new Error('Failed to add item to inventory');
+    }
+
+    // Update the inventory display after successful addition
+    updateInventoryDisplay();
+  } catch (error) {
+    console.error('Error adding item to inventory:', error);
+    alert('Failed to add item to inventory');
+  }
 }
 
-function updateInventoryDisplay() {
-  const inventory = JSON.parse(localStorage.getItem('inventory') ?? "[]");
-  const inventoryContainer = document.getElementById('inventory');
-  
-  // Clear existing content
-  inventoryContainer.innerHTML = '';
-  
-  // Create grid items
-  inventory.forEach((item, index) => {
-    const itemElement = document.createElement('div');
-    itemElement.className = 'bg-gray-500 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-transform hover:-translate-y-1 shadow-md';
-    itemElement.dataset.index = index;
-    itemElement.onclick = () => showItemDetail(item);
+async function updateInventoryDisplay() {
+  try {
+    const response = await fetch('http://127.0.0.1:5001/analyze/get_items');
+    if (!response.ok) {
+      throw new Error('Failed to fetch inventory');
+    }
     
-    itemElement.innerHTML = `
-      <img src="${item.image}" alt="${item.name}" class="w-full max-w-[150px] h-auto mb-2">
-      <span class="font-bold mb-1">${item.name}</span>
-      <span class="text-gray-600">Quantity: ${item.quantity}</span>
-    `;
+    const inventory = await response.json().then(res => res.result);
+    const inventoryContainer = document.getElementById('inventory');
     
-    inventoryContainer.appendChild(itemElement);
-  });
+    // Clear existing content
+    inventoryContainer.innerHTML = '';
+    
+    // Create grid items
+    inventory.forEach((item, index) => {
+      const itemElement = document.createElement('div');
+      itemElement.className = 'bg-gray-500 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-transform hover:-translate-y-1 shadow-md';
+      itemElement.dataset.index = index;
+      itemElement.onclick = () => showItemDetail(item);
+      
+      itemElement.innerHTML = `
+        <img src="${item.image}" alt="${item.name}" class="w-full max-w-[150px] h-auto mb-2">
+        <span class="font-bold mb-1">${item.name}</span>
+        <span class="text-gray-600">Quantity: ${item.quantity || 1}</span>
+      `;
+      
+      inventoryContainer.appendChild(itemElement);
+    });
+  } catch (error) {
+    console.error('Error fetching inventory:', error);
+    alert('Failed to load inventory');
+  }
 }
 
 function showItemDetail(item) {
@@ -278,6 +300,7 @@ function closeDetailModal() {
 
 // Initialize camera stream and capture functionality for the Inventory Scanner
 window.addEventListener('DOMContentLoaded', () => {
+  updateInventoryDisplay();
   canvas.style.width = video.style.width;
   canvas.style.height = video.style.height;
 
