@@ -18,11 +18,11 @@ class LoginForm(FlaskForm):
 
 # choices for role
 role_choices = [
-    ('Raider', 'Raider'),
+    ('Civilian', 'Civilian'),
     ('Medic', 'Medic'),
     ('Engineer', 'Engineer'),
     ('Trader', 'Trader'),
-    ('Spy', 'Spy')
+    ('Journalist', 'Journalist')
 ]
 
 # registration form
