@@ -14,6 +14,18 @@ const savedRecipes = [];
 
 const sleep = ms => new Promise(res => setTimeout(res, ms));
 
+// Helper: Convert a data URL to a Blob
+function dataURLtoBlob(dataURL) {
+    const parts = dataURL.split(',');
+    const base64 = parts[1];
+    const binary = atob(base64);
+    let array = [];
+    for (let i = 0; i < binary.length; i++) {
+      array.push(binary.charCodeAt(i));
+    }
+    return new Blob([new Uint8Array(array)], { type: 'image/png' });
+}
+  
 async function loadRecipes() {
     showLoadingAnimation();
 
@@ -128,6 +140,33 @@ function closeSelectedRecipe() {
     selectedRecipe.style.width = "0";
     craftingCanvas.classList.add("hidden");
     modalOverlay.classList.add("hidden");
+    
+    // Reset camera and canvas elements
+    const video = document.getElementById('camera-stream');
+    const canvas = document.getElementById('animation-canvas');
+    const preProcessing = document.getElementById('pre-proccessing');
+    const craftingInstructions = document.getElementById('crafting-instructions-container');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    
+    // Reset UI elements
+    video.classList.remove('hidden');
+    canvas.classList.add('hidden');
+    preProcessing.classList.remove('hidden');
+    craftingInstructions.classList.add('hidden');
+    loadingOverlay.classList.add('hidden');
+    
+    // Reset step indicator
+    document.getElementById('step-indicator').textContent = 'Step 1';
+    
+    // Reset buttons
+    document.getElementById('prev-step').disabled = true;
+    document.getElementById('next-step').disabled = false;
+    
+    // Clear any existing animation
+    if (window.animationFrame) {
+        cancelAnimationFrame(window.animationFrame);
+        window.animationFrame = null;
+    }
 }
 function showLoadingAnimation() {
     recipeList.innerHTML = `
@@ -293,6 +332,31 @@ async function craftRecipe() {
     craftingCanvas.classList.remove("hidden");
     modalOverlay.classList.remove("hidden");
 
+    const craftingInstructionsContainer = document.getElementById('crafting-instructions-container');
+    const preProccessingContainer = document.getElementById('pre-proccessing');
+    const preProccessingItems = document.getElementById('pre-proccessing-items');
+    preProccessingItems.replaceChildren();
+    preProccessingContainer.classList.remove("hidden");
+    craftingInstructionsContainer.classList.add("hidden");
+
+    for(const material of selectedRecipeObject.materials) {
+        const materialItem = document.createElement("div");
+        materialItem.className = "flex flex-col items-center justify-center gap-2 p-4 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow";
+
+        const materialImage = document.createElement("img");
+        materialImage.className = "w-24 h-24 object-cover rounded-lg";
+        materialImage.src = material.image || "https://via.placeholder.com/96";
+        materialImage.alt = material.name;
+
+        const materialName = document.createElement("span");
+        materialName.className = "text-slate-900 font-medium";
+        materialName.textContent = material.name;
+
+        materialItem.appendChild(materialImage);
+        materialItem.appendChild(materialName);
+        preProccessingItems.appendChild(materialItem);
+    }
+
     // Create canvas
     const canvas = document.getElementById('animation-canvas');
     const ctx = canvas.getContext('2d');
@@ -300,39 +364,25 @@ async function craftRecipe() {
     const prevStepBtn = document.getElementById('prev-step');
     const nextStepBtn = document.getElementById('next-step');
     const loadingOverlay = document.getElementById('loading-overlay');
+    const video = document.getElementById('camera-stream');
+    const captureBtn = document.getElementById('capture-btn');
 
-    // Set canvas size
-    const copyCanvas = document.createElement('canvas');
-    const copyCtx = copyCanvas.getContext('2d');
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    copyCanvas.width = canvas.width;
-    copyCanvas.height = canvas.height;
-
-    // Load all material images and draw them
-    const loadImages = async () => {
-        const padding = 20;
-        const imageSize = Math.min(
-            (copyCanvas.width - padding * (selectedRecipeObject.materials.length + 1)) / selectedRecipeObject.materials.length,
-            200
-        );
-        const startY = (copyCanvas.height - imageSize) / 2;
-        const spacing = (copyCanvas.width - imageSize * selectedRecipeObject.materials.length) / (selectedRecipeObject.materials.length + 1);
-
-        for (let i = 0; i < selectedRecipeObject.materials.length; i++) {
-            const material = selectedRecipeObject.materials[i];
-            const img = new Image();
-            img.src = material.image;
-            await new Promise((resolve, reject) => {
-                img.onload = resolve;
-                img.onerror = reject;
-            });
-            
-            const x = spacing + (spacing + imageSize) * i;
-            copyCtx.drawImage(img, x, startY, imageSize, imageSize);
-        }
-        ctx.drawImage(copyCanvas, 0, 0, canvas.width, canvas.height);
-    };
+    // Set up the camera stream
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'environment',
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            } 
+        });
+        video.srcObject = stream;
+    } catch (err) {
+        alert("Camera access denied or unavailable. Please allow camera access to use this feature.");
+        console.error(err);
+        closeSelectedRecipe();
+        return;
+    }
 
     // Calculate start position
     const startPosition = { x: 0, y: 0, radius: 0 };
@@ -341,64 +391,79 @@ async function craftRecipe() {
     // Animation variables
     let animationFrame = null;
     let progress = 0;
-
     let steps = [];
     let currentStep = 0;
+    
+    const image = new Image();
 
-    try {
-        await loadImages();
-
-        // Show loading spinner
-        loadingOverlay.classList.remove("hidden");
-
-        // Convert canvas to blob
-        const blob = await new Promise(resolve => canvas.toBlob(resolve));
+    // Capture button sends screenshot to backend and annotates the image
+    captureBtn.onclick = async () => {
+        preProccessingContainer.classList.add("hidden");
+        craftingInstructionsContainer.classList.remove("hidden");
         
-        // Create form data
-        const formData = new FormData();
-        formData.append('target_object', selectedRecipeObject.name);
-        formData.append('materials', JSON.stringify(selectedRecipeObject.materials.map(m => m.description)));
-        formData.append('description', selectedRecipeObject.description);
-        formData.append('image', blob, 'materials.png');
+        // Set canvas dimensions to match video exactly
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataURL = canvas.toDataURL('image/png');
 
-        // Send request
-        const response = await fetch('http://localhost:5001/analyze/generate_instructions', {
-            method: 'POST',
-            body: formData
-        });
+        video.style.display = 'none';
+        canvas.classList.remove('hidden');
 
-        if (!response.ok) {
-            throw new Error('Failed to generate instructions');
+        const blob = dataURLtoBlob(dataURL);
+        image.src = URL.createObjectURL(blob);
+
+        image.onload = () => {
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            ctx.filter = 'none';
+        };
+
+        try {
+            loadingOverlay.classList.remove("hidden");
+
+            const formData = new FormData();
+            formData.append('target_object', selectedRecipeObject.name);
+            formData.append('materials', JSON.stringify(selectedRecipeObject.materials.map(m => m.description)));
+            formData.append('description', selectedRecipeObject.description);
+            formData.append('image', dataURLtoBlob(dataURL), 'materials.png');
+
+            const response = await fetch('http://localhost:5001/analyze/generate_instructions', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate instructions');
+            }
+
+            steps = await response.json();
+            loadingOverlay.classList.add("hidden");
+            updateStep(0);
+
+            prevStepBtn.addEventListener('click', () => {
+                if (currentStep > 0) {
+                    updateStep(currentStep - 1);
+                }
+            });
+
+            nextStepBtn.addEventListener('click', () => {
+                if (currentStep < steps.length - 1) {
+                    updateStep(currentStep + 1);
+                }
+            });
+
+        } catch (error) {
+            console.error('Error generating instructions:', error);
+            loadingOverlay.classList.add("hidden");
+            const errorElement = document.createElement('div');
+            errorElement.className = 'mt-8 p-4 bg-red-100 text-red-700 rounded-lg';
+            errorElement.textContent = 'Failed to generate crafting instructions. Please try again.';
+            document.getElementById('crafting-canvas').appendChild(errorElement);
         }
-
-        steps = await response.json();
-        
-        // Hide loading spinner
-        loadingOverlay.classList.add("hidden");
-        
-        // Initialize animation
-        updateStep(0);
-
-        // Add event listeners for step navigation
-        prevStepBtn.addEventListener('click', () => {
-            if (currentStep > 0) {
-                updateStep(currentStep - 1);
-            }
-        });
-
-        nextStepBtn.addEventListener('click', () => {
-            if (currentStep < steps.length - 1) {
-                updateStep(currentStep + 1);
-            }
-        });
-
-    } catch (error) {
-        console.error('Error generating instructions:', error);
-        loadingOverlay.classList.add("hidden");
-        const errorElement = document.createElement('div');
-        errorElement.className = 'mt-8 p-4 bg-red-100 text-red-700 rounded-lg';
-        errorElement.textContent = 'Failed to generate crafting instructions. Please try again.';
-        document.getElementById('crafting-canvas').appendChild(errorElement);
     }
 
     function updateStep(stepIndex) {
@@ -406,15 +471,11 @@ async function craftRecipe() {
         const step = steps[stepIndex];
 
         document.getElementById('crafting-instructions').innerHTML = step.instruction;
-        
-        // Update step indicator
         stepIndicator.textContent = `Step ${step.step}`;
         
-        // Update button states
         prevStepBtn.disabled = currentStep === 0;
         nextStepBtn.disabled = currentStep === steps.length - 1;
 
-        // Calculate target position from box_2d
         const [y0start, x0start, y1start, x1start] = steps[currentStep].box_2d;
         const radiusStart = Math.hypot(x1start - x0start, y1start - y0start) / 2;
         startPosition.x = (x0start + x1start) / 2;
@@ -427,40 +488,35 @@ async function craftRecipe() {
         endPosition.y = (y0end + y1end) / 2;
         endPosition.radius = radiusEnd/2;
 
-
-        // Start animation
         if (animationFrame) {
             cancelAnimationFrame(animationFrame);
         }
+        progress = 0;
         animate();
     }
-
+    
     async function animate() {
-        // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-        // Redraw materials
-        ctx.drawImage(copyCanvas, 0, 0, canvas.width, canvas.height);
-
-        // Calculate current circle position
         const currentX = startPosition.x + (endPosition.x - startPosition.x) * progress;
         const currentY = startPosition.y + (endPosition.y - startPosition.y) * progress;
         const currentRadius = startPosition.radius + (endPosition.radius - startPosition.radius) * progress;
         
-        // Draw circle
+        // Draw pulsing circle
         ctx.beginPath();
         ctx.arc(currentX / 1024 * canvas.width, currentY / 1024 * canvas.height, currentRadius / 1024 * canvas.height, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 3;
-        ctx.closePath();
+        ctx.fillStyle = 'rgba(139, 69, 19, 0.3)'; // Amber color with transparency
+        ctx.strokeStyle = 'rgb(139, 69, 19)'; // Amber color
+        ctx.lineWidth = 4;
+        ctx.fill();
         ctx.stroke();
+        ctx.closePath();
 
-        // Continue animation if not at target
         progress += 0.01;
         if(progress > 1) {
             progress = 0;
-            await sleep(2000);
+            await sleep(1000);
         }
         
         animationFrame = requestAnimationFrame(animate);

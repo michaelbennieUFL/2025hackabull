@@ -19,7 +19,6 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 load_dotenv()
 
-import uuid
 from pymongo import MongoClient
 
 # Load MongoDB URI from environment or use fallback
