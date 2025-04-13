@@ -345,8 +345,6 @@ function closeScanner() {
   loading.style.display = 'none';
 }
 
-document.getElementById('scannerContainer').style.display = 'none';
-
 async function renderCanvas() {
   const baseImage = new Image();
   baseImage.src = canvas.dataset.baseImage;

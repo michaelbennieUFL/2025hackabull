@@ -14,8 +14,6 @@ from google import genai
 from google.genai import types
 
 
-from gemenai_server.items import item_types
-from flask_cors import CORS
 from items import item_types
 from pydantic import BaseModel
 
