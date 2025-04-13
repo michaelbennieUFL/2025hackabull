@@ -2,6 +2,7 @@ import os
 import io
 import json
 import base64
+import re
 from dataclasses import dataclass
 
 import numpy as np
@@ -184,48 +185,70 @@ def analyze_segment_items():
     return jsonify(filtered_items)
 
 
+def extract_step_and_instruction(text):
+    """
+    Extracts the step number and instructions from a string formatted as:
+    "Step #: Instructions" or "Step ##: Instructions".
+    If no step number is found, returns -1 as the step number.
+
+    Args:
+        text (str): Input text.
+
+    Returns:
+        tuple: (step_number (int), instructions (str))
+    """
+    pattern = r'^Step\s+(\d+):\s*(.+)$'
+    match = re.match(pattern, text.strip(), re.IGNORECASE)
+
+    if match:
+        step_number = int(match.group(1))
+        instructions = match.group(2)
+    else:
+        step_number = -1
+        instructions = text.strip()
+
+    return step_number, instructions
+
 @app.route('/analyze/generate_instructions', methods=['POST'])
 def analyze_generate_instructions():
     """
     Expects a POST with:
-      - a form field "instruction": the instruction string
-      - a file field "data": a JSON file containing items in the format {box_2d, label, description, amount}
-      - a file field "image": the image file
+      - form field "target_object": the target object to create
+      - form field "materials": JSON list [{item_name: str, quantity: int}, ...]
+      - file field "image": the image file
     Returns a JSON list of step-by-step instructions. Each step includes:
-      - step_number
+      - step: step number
       - box_2d
       - mask: Base64-encoded PNG string
-      - label
-      - instructions
+      - instruction
     """
-    if "instruction" not in request.form:
-        return jsonify({"error": "No instruction provided"}), 400
-    if "data" not in request.files:
-        return jsonify({"error": "No data file provided"}), 400
+    if "target_object" not in request.form:
+        return jsonify({"error": "No target object provided"}), 400
+    if "materials" not in request.form:
+        return jsonify({"error": "No materials provided"}), 400
     if "image" not in request.files:
         return jsonify({"error": "No image provided"}), 400
 
-    instruction = request.form["instruction"]
-    data_file = request.files["data"]
-    image_file = request.files["image"]
+    target_object = request.form["target_object"]
 
     try:
-        data_json = json.load(data_file)
+        materials = json.loads(request.form["materials"])
     except Exception as e:
-        return jsonify({"error": f"Invalid JSON data file: {str(e)}"}), 400
+        return jsonify({"error": f"Invalid materials JSON: {str(e)}"}), 400
 
+    image_file = request.files["image"]
     try:
         im = Image.open(image_file)
     except Exception as e:
         return jsonify({"error": f"Invalid image file: {str(e)}"}), 400
 
-    im.thumbnail([1024, 1024], Image.Resampling.LANCZOS)
+    im.thumbnail([512, 512], Image.Resampling.LANCZOS)
 
-    # Build a prompt combining the provided instruction and JSON data
+    materials_str = ', '.join([f"{m['quantity']} {m['item_name']}" for m in materials])
+
     prompt = (
-        f"Using the following items: {json.dumps(data_json)} "
-        f"and the instruction: '{instruction}', generate step-by-step instructions for handling the items. "
-        "For each step, return a JSON object with 'step_number', 'box_2d', 'mask' (a Base64-encoded PNG image), 'label', and 'instructions'."
+        f"Tell me how to make {target_object} using {materials_str} step by step with an explanation as label. "
+        "Do not just label the items. Always create a json output of the steps; only use objects on screen. Provide each step with a 'box_2d' coordinate, and step-by-step instructions 'instruction' clearly."
     )
 
     try:
@@ -233,19 +256,103 @@ def analyze_generate_instructions():
             model=model_name,
             contents=[prompt, im],
             config=types.GenerateContentConfig(
-                temperature=0.5,
+                temperature=0.1,
                 safety_settings=safety_settings,
             ),
         )
     except Exception as e:
         return jsonify({"error": f"Model generation failed: {str(e)}"}), 500
 
+    # Parse response
     try:
-        instructions_json = json.loads(parse_json(response.text))
+        steps_json = json.loads(parse_json(response.text))
     except Exception as e:
-        return jsonify({"error": f"Failed to parse instructions JSON: {str(e)}"}), 500
+        return jsonify({"error": f"Failed to parse instructions JSON: {str(e)}; {response.text}"}), 500
 
-    return jsonify(instructions_json)
+    # Normalize output to structured steps with explicit step indexing
+    structured_steps = []
+    offset = 0.001
+    previous_step = 0
+
+    for idx, step in enumerate(steps_json, start=1):
+        step_text = step.get("instruction", step.get("label", step.get("instructions", "")))
+        step_number, instructions = extract_step_and_instruction(step_text)
+
+        if step_number == -1:
+            step_number = previous_step + offset
+            offset += offset  # exponential increase to maintain order clearly
+
+        structured_step = {
+            "original_step": step_number,
+            "box_2d": step["box_2d"],
+            "instruction": instructions
+        }
+        previous_step = step_number
+        structured_steps.append(structured_step)
+
+    # Sort the structured_steps by original_step number, then re-index clearly from 1
+    structured_steps.sort(key=lambda x: x["original_step"])
+
+    # Reassign step numbers to 1, 2, 3, ...
+    for idx, step in enumerate(structured_steps, start=1):
+        step["step"] = idx
+        del step["original_step"]
+
+    return jsonify(structured_steps)
+
+
+@app.route('/analyze/checkrequirements', methods=['POST'])
+def analyze_check_requirements():
+    """
+    Expects a POST with:
+      - form field "required_items": JSON list of item names
+      - file field "image": the image file
+    Returns a JSON list of missing items (empty if none).
+    """
+    if "required_items" not in request.form:
+        return jsonify({"error": "No required_items provided"}), 400
+    if "image" not in request.files:
+        return jsonify({"error": "No image provided"}), 400
+
+    try:
+        required_items = json.loads(request.form["required_items"])
+    except Exception as e:
+        return jsonify({"error": f"Invalid required_items JSON: {str(e)}"}), 400
+
+    image_file = request.files["image"]
+    try:
+        im = Image.open(image_file)
+    except Exception as e:
+        return jsonify({"error": f"Invalid image file: {str(e)}"}), 400
+
+    im.thumbnail([256, 256], Image.Resampling.LANCZOS)
+
+    # Prompt for segmentation and detection
+    prompt = (
+        "Detect the items in the image and provide segmentation masks. "
+        "Return a JSON list where each entry has 'label'. "
+        f"Only use these labels: {', '.join(required_items)}."
+    )
+
+    try:
+        response = client.models.generate_content(
+            model=model_name,
+            contents=[prompt, im],
+            config=types.GenerateContentConfig(
+                temperature=0.3,
+                safety_settings=safety_settings,
+            ),
+        )
+    except Exception as e:
+        return jsonify({"error": f"Model generation failed: {str(e)}"}), 500
+
+    seg_masks = parse_segmentation_masks(response.text, img_height=im.size[1], img_width=im.size[0])
+
+    detected_labels = set(seg.label.lower() for seg in seg_masks)
+    missing_items = [item for item in required_items if item.lower() not in detected_labels]
+
+    return jsonify(missing_items)
+
 
 @app.route('/analyze/find_recipes', methods=['POST'])
 def analyze_find_recipes():

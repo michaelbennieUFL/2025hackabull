@@ -1,4 +1,4 @@
-.PHONY: all download-images test-hello test-segment test-generate test-question test-all clean
+.PHONY: all download-images test-hello test-segment test-generate test-question test-check-requirements test-instructions test-all clean
 
 # Change the HOST and PORT if necessary.
 HOST=http://localhost
@@ -28,7 +28,7 @@ test-hello:
 	curl -X GET "$(BASE_URL)/hello"
 	@echo "\n"
 
-# Test /analyze/segment_items endpoint using Socks.jpg
+# Test /analyze/segment_items endpoint using Survival.jpg
 test-segment:
 	@echo "Testing /analyze/segment_items endpoint..."
 	curl -X POST -F "image=@Survival.jpg" "$(BASE_URL)/analyze/segment_items"
@@ -47,17 +47,34 @@ test-generate:
 	@echo "\n"
 	@rm -f test_data.json
 
-# Test /analyze/find_recipes endpoint
-test-crafting:
-	@echo "Testing /analyze/find_recipes endpoint..."
-	@echo '{"materials": ["A rock that is hard, durable, about the size of a human head", "A long, thin piece of wood, about the size of a human arm", "A handful of crispy, brown fallen leaves that are completely dry and crumble easily"]}' > test_materials.json
+# Test /analyze/checkrequirements endpoint
+test-check-requirements:
+	@echo "Testing /analyze/checkrequirements endpoint with Spill.jpg and required item 'cup'..."
 	curl -X POST \
-		-H "Content-Type: application/json" \
-		-d @test_materials.json \
-		"$(BASE_URL)/analyze/find_recipes"
+		-F 'required_items=["cup","fishies"]' \
+		-F "image=@Spill.jpg" \
+		"$(BASE_URL)/analyze/checkrequirements"
 	@echo "\n"
-	@rm -f test_materials.json
 
+# Test /analyze/generate_instructions endpoint for sweetened tea scenario
+test-instructions:
+	@echo "Testing /analyze/generate_instructions endpoint with Spill.jpg for making sweetened tea..."
+	curl -X POST \
+		-F "target_object=put sugar in the teapot" \
+		-F 'materials=[{"item_name":"cup","quantity":1},{"item_name":"sugar","quantity":1}]' \
+		-F "image=@Spill.jpg" \
+		"$(BASE_URL)/analyze/generate_instructions"
+	@echo "\n"
+
+# Test /analyze/generate_instructions endpoint for sweetened tea scenario
+test-instructions-2:
+	@echo "Testing /analyze/generate_instructions endpoint with Spill.jpg for making sweetened tea..."
+	curl -X POST \
+		-F "target_object=scrap cloth" \
+		-F 'materials=[{"item_name":"knife","quantity":1},{"item_name":"duct tape","quantity":1},{"item_name":"shoes","quantity":1},{"item_name":"flashlight","quantity":1}]' \
+		-F "image=@Survival.jpg" \
+		"$(BASE_URL)/analyze/generate_instructions"
+	@echo "\n"
 
 # Test /analyze/question endpoint with and without image
 test-question:
@@ -69,9 +86,8 @@ test-question:
 	@echo "\n"
 
 # Test all endpoints
-test-all: download-images test-hello test-segment test-generate test-question test-crafting
+test-all: download-images test-hello test-segment test-generate test-check-requirements test-instructions test-question
 
 # Optional: clean downloaded images
 clean:
-	rm -f Socks.jpg Vegetables.jpg Japanese_bento.png Cupcakes.jpg Origamis.jpg Fruits.jpg Cat.jpg Pumpkins.jpg Breakfast.jpg Bookshelf.jpg Spill.jpg
-
+	rm -f Survival.jpg Socks.jpg Vegetables.jpg Japanese_bento.png Cupcakes.jpg Origamis.jpg Fruits.jpg Cat.jpg Pumpkins.jpg Breakfast.jpg Bookshelf.jpg Spill.jpg
