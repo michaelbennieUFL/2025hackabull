@@ -155,6 +155,21 @@ function showAddToInventoryModal(annotation) {
   };
 }
 
+async function deleteItem(item) {
+  closeDetailModal();
+
+  await fetch(`http://127.0.0.1:5001/analyze/delete_item`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      description: item.description
+    })
+  });
+  updateInventoryDisplay();
+}
+
 async function storeAnnotation(annotation) {
   // Create a new Image from the mask base64 string
   const maskImage = new Image();
@@ -253,14 +268,16 @@ async function updateInventoryDisplay() {
     // Create grid items
     inventory.forEach((item, index) => {
       const itemElement = document.createElement('div');
-      itemElement.className = 'bg-gray-500 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-transform hover:-translate-y-1 shadow-md';
+      itemElement.className = 'bg-gray-100 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-transform hover:-translate-y-1 shadow-md';
       itemElement.dataset.index = index;
       itemElement.onclick = () => showItemDetail(item);
       
       itemElement.innerHTML = `
-        <img src="${item.image}" alt="${item.name}" class="w-full max-w-[150px] h-auto mb-2">
-        <span class="font-bold mb-1">${item.name}</span>
-        <span class="text-gray-600">Quantity: ${item.quantity || 1}</span>
+        <div class="w-full mb-2 bg-white rounded-lg">
+          <img src="${item.image}" alt="${item.name}" class="w-full aspect-square object-cover rounded-lg">
+        </div>
+        <span class="font-bold mb-1">${item.name[0].toUpperCase() + item.name.slice(1)}</span>
+        <span class="text-gray-600">${item.description.slice(0, 100)}${item.description.length > 100 ? '...' : ''}</span>
       `;
       
       inventoryContainer.appendChild(itemElement);
@@ -277,17 +294,18 @@ function showItemDetail(item) {
   const title = document.getElementById('detailTitle');
   const image = document.getElementById('detailImage');
   const description = document.getElementById('detailDescription');
-  const quantity = document.getElementById('detailQuantity');
   
   // Update modal content
-  title.textContent = item.name;
+  title.textContent = item.name[0].toUpperCase() + item.name.slice(1);
   image.src = item.image;
   description.textContent = item.description || 'No description available';
-  quantity.textContent = `Quantity: ${item.quantity}`;
   
   // Show modal and overlay
   modal.classList.remove('translate-x-full');
   overlay.classList.remove('hidden');
+
+  const deleteBtn = document.getElementById('detailDeleteBtn');
+  deleteBtn.onclick = () => deleteItem(item);
 }
 
 function closeDetailModal() {

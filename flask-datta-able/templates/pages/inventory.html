@@ -41,17 +41,19 @@
       <h2 id="detailTitle" class="text-2xl font-bold mb-4"></h2>
       <img id="detailImage" class="w-full max-w-[200px] h-auto my-4" src="" alt="">
       <p id="detailDescription" class="my-4 leading-relaxed"></p>
-      <p id="detailQuantity" class="text-xl text-gray-600"></p>
+    </div>
+    <div class="flex flex-row mt-auto items-center justify-between">
+      <button id="detailDeleteBtn" class="ml-auto px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
     </div>
   </div>
-  <div id="modalOverlay" class="fixed top-0 left-0 w-full h-full bg-black/50 z-[9999] hidden" onclick="closeDetailModal()"></div>
+  <div id="modalOverlay" class="fixed top-0 left-0 w-full h-full bg-black/50 z-[9999] overflow-y-scroll hidden" onclick="closeDetailModal()"></div>
 
   <div class="flex flex-col items-center justify-center">
     <div class="w-full h-16 flex items-center justify-center pl-12 pr-8">
       <h1 class="text-3xl font-bold text-slate-800">Inventory</h1>
       <button id="openScannerBtn" class="ml-auto bg-slate-800 hover:bg-slate-600 px-4 py-2 rounded-md text-white font-bold transition-all duration-300">Add Items</button>
     </div>
-    <div id="inventory" class="grid grid-cols-4 gap-4 p-4 max-w-[1200px] mx-auto">
+    <div id="inventory" class="grid grid-cols-4 gap-4 p-4 mx-8">
     </div>
   </div>
 </div>

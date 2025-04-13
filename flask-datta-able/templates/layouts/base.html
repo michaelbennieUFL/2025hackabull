@@ -4,6 +4,7 @@
   <title>{% block title %}{% endblock title %} | Snapcraft</title>
   <link rel="canonical" href="https://app-generator.dev/product/datta-able/flask/" />
   {% include "includes/head.html" %}
+  {% include "includes/scripts.html" %}
   {% block extrastyle %}{% endblock extrastyle %}
   <style>
     body {
@@ -29,6 +30,44 @@
   </style>
   
 </head>
+
+<!-- QRCode Generator Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+  const userInfo = {
+    role: "{{ current_user.role if current_user.is_authenticated else 'Unknown' }}",
+    inventory: {{ (user_inventory or []) | tojson }}
+  };
+  
+  function openQRModal() {
+    const modal = document.getElementById("qrModal");
+    modal.style.display = "flex";
+  
+    const qrData = `{"user_role":"civilian","items":[{"name":"phone","count":"1"},{"name":"shirt","count":"1"},]}`;
+    const qrContainer = document.getElementById("qrContainer");
+    qrContainer.innerHTML = ""; // Clear any old QR
+  
+    new QRCode(qrContainer, {
+      text: qrData,
+      width: 240,
+      height: 240
+    });
+  }
+  
+  function closeModal() {
+    document.getElementById("qrModal").style.display = "none";
+  }
+  
+  document.addEventListener("DOMContentLoaded", () => {
+    const qrButton = document.getElementById("qrDownloadBtn");
+    if (qrButton) {
+      qrButton.addEventListener("click", openQRModal);
+    }
+  });
+</script>
+  
+
 
 <body data-pc-preset="preset-1" data-pc-sidebar-caption="true" data-pc-direction="ltr" data-pc-theme="light">
   {% block loader %}
