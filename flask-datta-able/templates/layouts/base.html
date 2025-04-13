@@ -7,30 +7,28 @@
   {% include "includes/scripts.html" %}
   {% block extrastyle %}{% endblock extrastyle %}
   <style>
-    #zombie {
-      position: absolute;
-      width: 80px;
-      pointer-events: none;
-      z-index: 9999;
-      transition: transform 0.1s linear;
+    body {
+      cursor: url("/static/cursors/compass.png") 16 16, auto;
     }
-
-    .blood-dot {
-      position: absolute;
-      width: 5px;
-      height: 5px;
-      background-color: rgba(150, 0, 0, 0.7);
+  
+    .star-dot {
+      position: fixed; /* ✅ 从 absolute 改成 fixed，跟随视口 */
+      width: 6px;
+      height: 6px;
+      background-color: #ffe066;
       border-radius: 50%;
+      box-shadow: 0 0 6px #fff7d1;
       pointer-events: none;
       z-index: 9998;
       animation: fadeOut 2.5s forwards;
     }
-
+  
     @keyframes fadeOut {
       0% { opacity: 1; transform: scale(1); }
       100% { opacity: 0; transform: scale(0.3); }
     }
   </style>
+  
 </head>
 
 <!-- QRCode Generator Library -->
@@ -89,9 +87,6 @@
     <img src="{{ url_for('static', filename='assets/images/background.gif') }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.2;">
   </div>
 
-  <!-- 🧟‍♂️ 僵尸跟随 -->
-  <img id="zombie" src="{{ url_for('static', filename='assets/images/user/ZombieFollow.gif') }}" alt="Zombie" />
-
   {% block content %}{% endblock content %}
 
   {% block footer %}
@@ -101,56 +96,28 @@
   {% include "includes/scripts.html" %}
 
   <script>
-    const zombie = document.getElementById('zombie');
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
-    let zombieX = window.innerWidth / 2;
-    let zombieY = window.innerHeight / 2;
-    let prevX = zombieX;
-    let facingLeft = false;
 
     document.addEventListener('mousemove', (e) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
+      spawnStar(mouseX, mouseY);
     });
 
-    function spawnBloodBehind(x, y) {
-      const blood = document.createElement('div');
-      blood.className = 'blood-dot';
+    function spawnStar(x, y) {
+      const star = document.createElement('div');
+      star.className = 'star-dot';
 
-      const backOffset = 20;
-      const spawnX = x + (facingLeft ? backOffset : -backOffset) + (Math.random() - 0.5) * 10;
-      const spawnY = y + 30 + (Math.random() - 0.5) * 10;
+      const offsetX = (Math.random() - 0.5) * 10;
+      const offsetY = (Math.random() - 0.5) * 10;
 
-      blood.style.left = `${spawnX}px`;
-      blood.style.top = `${spawnY}px`;
+      star.style.left = `${x + offsetX}px`;
+      star.style.top = `${y + offsetY}px`;
 
-      document.body.appendChild(blood);
-      setTimeout(() => blood.remove(), 2500);
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 2500);
     }
-
-    function animateZombie() {
-      const speed = 0.05;
-      zombieX += (mouseX - zombieX) * speed;
-      zombieY += (mouseY - zombieY) * speed;
-
-      zombie.style.left = `${zombieX - 40}px`;
-      zombie.style.top = `${zombieY - 40}px`;
-
-      if (zombieX < prevX) {
-        facingLeft = true;
-        zombie.style.transform = 'scaleX(-1)';
-      } else {
-        facingLeft = false;
-        zombie.style.transform = 'scaleX(1)';
-      }
-
-      spawnBloodBehind(zombieX, zombieY);
-      prevX = zombieX;
-      requestAnimationFrame(animateZombie);
-    }
-
-    animateZombie();
   </script>
 
   {% block extra_js %}{% endblock extra_js %}
