@@ -8,49 +8,34 @@ from dataclasses import dataclass
 import numpy as np
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_cors import CORS
-from PIL import Image, ImageDraw, ImageFont, ImageColor
+from PIL import Image
 
 # Import and initialize the Gemini client
 from google import genai
 from google.genai import types
 
-
-
-from gemenai_server.items import item_types
-from flask_cors import CORS
-from items import item_types
-from pydantic import BaseModel
-
-from dotenv import load_dotenv
-load_dotenv()
-from flask_cors import CORS
-from items import item_types
 from pydantic import BaseModel
 
 from dotenv import load_dotenv
 load_dotenv()
 
-import os
+import uuid
 from pymongo import MongoClient
 
 # Load MongoDB URI from environment or use fallback
 MONGO_URI = os.environ.get('MONGO_URI', "mongodb+srv://anthonycastillolmk:vXQNYY9LpifXg3e9@sandbox.7gnovef.mongodb.net/?retryWrites=true&w=majority&appName=Sandbox")
 client = MongoClient(MONGO_URI)
 db = client["Hackabull"]             # use the Hackabull database
-inventory_collection = db["Gemini"]  # use the Gemini collection for inventory
+inventory_collection = db["Inventory"]  # use the Gemini collection for inventory
+saved_recipes_collection = db["SavedRecipes"]
 
 app = Flask(__name__)
 CORS(app)
-CORS(app)
 
-CORS(app)
-CORS(app)
 # Retrieve API key from environment (ensure you set GOOGLE_API_KEY)
+client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY", "AIzaSyDzDe0okIEmFCAlZ_Yy2mD4oVLVR5SljnI"))
 
-GOOGLE_API_KEY = "AIzaSyAVQ2CwzjOa4M_KWgaCSb64NWbFf6TM580"
-
-#GOOGLE_API_KEY = "AIzaSyBF6eCa_PW27Ao-wcMzXWQiLfX-q-FWYwE"
+GOOGLE_API_KEY = "AIzaSyBF6eCa_PW27Ao-wcMzXWQiLfX-q-FWYwE"
 
 #GOOGLE_API_KEY = "AIzaSyBf110U5S4hurLPwycrnjyKbyD9-pdk2yE"
 
@@ -58,14 +43,13 @@ client = genai.Client(api_key=GOOGLE_API_KEY)
 
 
 model_name = "gemini-2.5-pro-exp-03-25"
+
 safety_settings = [
     types.SafetySetting(
         category="HARM_CATEGORY_DANGEROUS_CONTENT",
         threshold="BLOCK_NONE",
     ),
 ]
-
-
 
 # --- Helper functions --- #
 
@@ -173,9 +157,31 @@ def encode_mask_to_base64(np_mask):
 
 # --- Flask Endpoints --- #
 
-@app.route('/hello', methods=['GET'])
-def hello():
-    return jsonify({"message": "Hello, world!"})
+@app.route('/analyze/get_items', methods=['GET'])
+def analyze_get_items():
+    """
+    Get all items in the inventory from MongoDB.
+    Returns a JSON array of inventory items.
+    """
+    return jsonify({"result": list(inventory_collection.find({}, {"_id": 0}))})
+
+@app.route('/analyze/add_item', methods=['POST'])
+def analyze_add_item():
+    """
+    Expects a POST with:
+      - form field "item_name": the name of the item
+      - form field "description": the description of the item
+    """
+    data = request.get_json()
+
+    inventory_collection.insert_one({
+        "name": data["name"],
+        "description": data["description"],
+        "image": data["image"],
+    })
+
+    return jsonify({"message": "Item added successfully"}), 200
+
 
 
 @app.route('/analyze/segment_items', methods=['POST'])
@@ -208,6 +214,7 @@ def analyze_segment_items():
         "Only use these labels (use the exact names): "+str(",".join(item_types))
     )
 
+    print("Sending request to Gemini")
     try:
         response = client.models.generate_content(
             model=model_name,
@@ -220,6 +227,7 @@ def analyze_segment_items():
     except Exception as e:
         return jsonify({"error": f"Model generation failed: {str(e)}"}), 500
 
+<<<<<<< HEAD
     seg_masks = parse_segmentation_masks(response.text, img_height=im.size[1], img_width=im.size[0])
 
     # Filter to include only the items whose label is in item_types (case-insensitive)
@@ -236,6 +244,26 @@ def analyze_segment_items():
                 }
                 filtered_items.append(item_dict)
                 break
+=======
+    response = json.loads(response_json.text)
+    print("Received response from Gemini")
+    
+    # Filter to include only the items whose label is in item_types (case-insensitive)
+    filtered_items = []
+    for item in response:
+        seg_mask = parse_segmentation_mask(item, img_height=im.size[1], img_width=im.size[0])
+        if seg_mask is None:
+            continue
+        filtered_items.append({
+            "box_2d": [seg_mask.y0, seg_mask.x0, seg_mask.y1, seg_mask.x1],
+            "mask": encode_mask_to_base64(seg_mask.mask),
+            "label": seg_mask.label,
+            "description": item["description"],
+            "amount": 1,
+            "uuid": str(uuid.uuid4())
+        })
+        
+>>>>>>> be29cfecdae1d020a572974cdfb683533dab431b
 
     return jsonify(filtered_items)
 
@@ -400,36 +428,34 @@ def analyze_check_requirements():
     except Exception as e:
         return jsonify({"error": f"Model generation failed: {str(e)}"}), 500
 
-    seg_masks = parse_segmentation_masks(response.text, img_height=im.size[1], img_width=im.size[0])
+    seg_masks = parse_segmentation_mask(response.text, img_height=im.size[1], img_width=im.size[0])
 
     detected_labels = set(seg.label.lower() for seg in seg_masks)
     missing_items = [item for item in required_items if item.lower() not in detected_labels]
 
     return jsonify(missing_items)
 
-
-
 @app.route('/analyze/find_recipes', methods=['GET'])
 def analyze_find_recipes():
     try:
-        cursor = inventory_collection.find({}, {"_id": 0, "label": 1})
-        materials = [doc["label"] for doc in cursor]
+        materials = list(inventory_collection.find({}))
     except Exception as e:
         return jsonify({"error": f"MongoDB query failed: {str(e)}"}), 500
 
     if not materials:
         return jsonify({"result": [], "message": "No materials found in inventory"}), 200
 
-    materials_str = ", ".join(f"\n{i}: {m}" for i, m in enumerate(materials))
-    
+    materials_str = ", ".join(f"\n{i}: {m['description']}" for i, m in enumerate(materials))
+
     prompt = (
         f"Using the following materials, setup as a indexed array of the description of the material: {materials_str}, "
-        f"generate three recipes that can be made with these materials. Include the name of the recipe, the index of the materials needed, and the instructions to put the materials in the recipe together. When writing the instructions, do not put the index of the materials in the instructions, just write the instructions for the recipe. "
-        "Return a JSON object following the provided schema: { 'name': string, 'materials': number[], 'crafting': string }[]"
+        f"generate three recipes that can be made with these materials. Include the name of the recipe, a short description of the recipe, the index of each material needed, and the instructions to put the materials in the recipe together. When writing the instructions, do not put the index of the materials in the instructions, just write the instructions for the recipe. "
+        "Return a JSON object following the provided schema: { 'name': string, 'description': string, 'materials': number[], 'crafting': string }[]"
     )
 
     class Recipe(BaseModel):
         name: str
+        description: str
         materials: list[int]
         crafting: str
 
@@ -451,13 +477,36 @@ def analyze_find_recipes():
         parsed = json.loads(response.text)
         recipes = [{
             "name": r["name"],
-            "materials": [materials[i] for i in r["materials"]],
+            "description": r["description"],
+            "materials": [{
+                "name": materials[i]["name"],
+                "description": materials[i]["description"],
+                "image": materials[i]["image"]
+            } for i in r["materials"]],
             "crafting": r["crafting"]
         } for r in parsed]
     except Exception as e:
         return jsonify({"error": f"Recipe parsing failed: {str(e)}"}), 500
 
     return jsonify({"result": recipes})
+
+@app.route('/analyze/get_inventory', methods=['GET'])
+def analyze_get_inventory():
+    """
+    Get all items in the inventory from MongoDB.
+    Returns a JSON array of inventory items.
+    """
+    try:
+        cursor = inventory_collection.find({}, {"_id": 0})
+        inventory = list(cursor)
+    except Exception as e:
+        return jsonify({"error": f"MongoDB query failed: {str(e)}"}), 500
+
+    if not inventory:
+        return jsonify({"result": [], "message": "No items found in inventory"}), 200
+
+    return jsonify({"result": inventory})
+
 
 
 @app.route('/analyze/question', methods=['POST'])
@@ -498,6 +547,70 @@ def analyze_question():
 
     return jsonify({"result": response.text})
 
+@app.route('/analyze/save_recipe', methods=['POST'])
+def save_recipe():
+    """
+    Expects a POST with JSON containing:
+        - name: string
+        - description: string 
+        - materials: list[dict] with name and quantity
+        - crafting: string
+    Returns success message if recipe is saved successfully.
+    """
+    try:
+        data = request.get_json()
+        
+        if not all(key in data for key in ['name', 'description', 'materials', 'crafting']):
+            return jsonify({"error": "Missing required fields"}), 400
+
+        recipe = {
+            "name": data["name"],
+            "description": data["description"], 
+            "materials": data["materials"],
+            "crafting": data["crafting"]
+        }
+
+        # Save to MongoDB
+        saved_recipes_collection.insert_one(recipe)
+        return jsonify({"message": "Recipe saved successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to save recipe: {str(e)}"}), 500
+
+@app.route('/analyze/get_saved_recipes', methods=['GET'])
+def get_saved_recipes():
+    """
+    Returns all saved recipes from the database.
+    """
+    try:
+        recipes = list(saved_recipes_collection.find({}, {"_id": 0}))
+        return jsonify({"result": recipes}), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to fetch saved recipes: {str(e)}"}), 500
+
+@app.route('/analyze/unsave_recipe', methods=['POST'])
+def unsave_recipe():
+    """
+    Expects a POST with JSON containing:
+        - name: string (recipe name to unsave)
+    Returns success message if recipe is unsaved successfully.
+    """
+    try:
+        data = request.get_json()
+        
+        if 'name' not in data:
+            return jsonify({"error": "Missing recipe name"}), 400
+
+        # Delete the recipe from MongoDB
+        result = saved_recipes_collection.delete_one({"name": data["name"]})
+        
+        if result.deleted_count == 0:
+            return jsonify({"error": "Recipe not found"}), 404
+            
+        return jsonify({"message": "Recipe unsaved successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to unsave recipe: {str(e)}"}), 500
 
 if __name__ == '__main__':
     # Run the Flask server on host 0.0.0.0 and port 5001.

@@ -102,25 +102,26 @@
         </div>
         <div class="animated-card">
           <span class="label">👨🏻‍🤝‍👨🏿 People Detected:</span>
-          <span class="value">12 </span>
+          <span class="value">12</span>
         </div>
         <div class="animated-card">
-          <span class="label">💡 Survival Tip #1:</span>
-          <span class="value">Always boil water before drinking, unless sourced from a known filtered well.</span>
+          <span class="label">🍎 Food Sources Located:</span>
+          <span class="value">23</span>
         </div>
         <div class="animated-card">
-          <span class="label">💡 Survival Tip #2:</span>
-          <span class="value">Crafting at night reduces success rate—light and stable shelter increase effectiveness.</span>
+          <span class="label">💧 Water Points Available:</span>
+          <span class="value">9 safe sources near camp</span>
         </div>
         <div class="animated-card">
-          <span class="label">💡 Survival Tip #3:</span>
-          <span class="value">Watch for changing skies—green glow often precedes a radiation surge.</span>
+          <span class="label">🔧 Tools Found:</span>
+          <span class="value">5 functioning tools (wrench, blade, screwdriver)</span>
         </div>
         <div class="animated-card">
-          <span class="label">💡 Survival Tip #4:</span>
-          <span class="value">Tampa Safe Zone holds for now, but never stay in one place for more than 3 days.</span>
+          <span class="label">📍 Location Safety:</span>
+          <span class="value">Tampa Safe Zone – Level 3 Stability</span>
         </div>
       </div>
+      
 
       <div class="map-box mt-5">
         <h4>🗺️ Territory Map (Live Ping)</h4>
@@ -128,7 +129,7 @@
       </div>
 
       <div class="chart-box mt-4">
-        <h4>📊 Item Found Over Time <span style="font-size: 0.7em; color: #aaa;">(Hover for details)</span></h4>
+        <h4>📊 Item Scanned Over Time <span style="font-size: 0.7em; color: #aaa;">(Hover for details)</span></h4>
         <div id="chart-crafting"></div>
         <p style="color:#bbb; font-size: 0.9em; margin-top:10px;">
           📌 Tip: Resource spikes often occur right after enemy raids—be alert and harvest fast.
@@ -193,7 +194,7 @@ const options = {
   },
   series: [{
     name: "Crafting Success",
-    data: [42, 37, 85, 49, 32, 28, 52]
+    data: [13, 4, 12, 5, 2, 12, 7]
   }],
   xaxis: {
     categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
