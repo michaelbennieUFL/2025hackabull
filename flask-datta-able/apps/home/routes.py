@@ -174,7 +174,8 @@ def crafting():
 
 @blueprint.route('/gps')
 def gps():
-    return render_template('pages/gps.html', segment='gps')
+    return render_template('pages/sample-page.html', segment='gps')
+
 
 @blueprint.route('/test_inventory')
 def test_inventory():
@@ -184,3 +185,11 @@ def test_inventory():
 @blueprint.route('/test_crafting')
 def test_crafting():
     return render_template('pages/test_crafting.html', segment='crafting')
+
+@blueprint.route("/report")
+def report():
+    return render_template("report.html")
+@blueprint.route('/page2')
+def page2():
+    return render_template('Page2.html')
+

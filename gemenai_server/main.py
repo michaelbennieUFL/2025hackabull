@@ -486,7 +486,18 @@ def analyze_get_inventory():
 
     return jsonify({"result": inventory})
 
-
+@app.route('/analyze/delete_item', methods=['DELETE'])
+def analyze_delete_item():
+    """
+    Expects a DELETE request with JSON containing:
+        - description: string (description of the item to delete)
+    """
+    try:
+        data = request.get_json()
+        inventory_collection.delete_one({"description": data["description"]})
+        return jsonify({"message": "Item deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to delete item: {str(e)}"}), 500
 
 @app.route('/analyze/question', methods=['POST'])
 def analyze_question():
