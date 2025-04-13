@@ -227,7 +227,6 @@ def analyze_segment_items():
     except Exception as e:
         return jsonify({"error": f"Model generation failed: {str(e)}"}), 500
 
-<<<<<<< HEAD
     seg_masks = parse_segmentation_masks(response.text, img_height=im.size[1], img_width=im.size[0])
 
     # Filter to include only the items whose label is in item_types (case-insensitive)
@@ -244,26 +243,6 @@ def analyze_segment_items():
                 }
                 filtered_items.append(item_dict)
                 break
-=======
-    response = json.loads(response_json.text)
-    print("Received response from Gemini")
-    
-    # Filter to include only the items whose label is in item_types (case-insensitive)
-    filtered_items = []
-    for item in response:
-        seg_mask = parse_segmentation_mask(item, img_height=im.size[1], img_width=im.size[0])
-        if seg_mask is None:
-            continue
-        filtered_items.append({
-            "box_2d": [seg_mask.y0, seg_mask.x0, seg_mask.y1, seg_mask.x1],
-            "mask": encode_mask_to_base64(seg_mask.mask),
-            "label": seg_mask.label,
-            "description": item["description"],
-            "amount": 1,
-            "uuid": str(uuid.uuid4())
-        })
-        
->>>>>>> be29cfecdae1d020a572974cdfb683533dab431b
 
     return jsonify(filtered_items)
 
