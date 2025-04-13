@@ -1,191 +1,13 @@
 {% extends 'layouts/base.html' %}
 
-{% block extrastyle %}
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
-  /* Scanner Modal styles */
-  .modal {
-    position: fixed;
-    top: 100px;
-    left: 100px;
-    width: 720px;
-    max-width: 90%;
-    background-color: #f2e6b4;
-    border: 3px dashed #aa8800;
-    border-radius: 10px;
-    box-shadow: 0 0 15px #333;
-    z-index: 9999;
-    display: none; /* hidden by default */
-  }
-
-  #scannerHeader {
-    cursor: move;
-    padding: 12px;
-    background-color: #aa8800;
-    font-weight: bold;
-    color: #2f2f2f;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-  }
-
-  .modal-content {
-    padding: 10px 20px;  /* reduced vertical padding */
-    text-align: center;
-  }
-
-  .close-btn {
-    float: right;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #2f2f2f;
-  }
-
-  .btn-scan {
-    background-color: #aa8800;
-    color: black;
-    font-weight: bold;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-    margin-top: 15px;
-    font-size: 1.1rem;
-  }
-
-  .btn-scan:hover {
-    background-color: #ffcc00;
-    transform: scale(1.05);
-  }
-
-  /* Inventory Container and related styles */
-  .inventory {
-    width: 90vw;
-    max-width: 1200px;
-    height: calc(70vw * 0.667);
-    max-height: 700px;
-    background: #c6c6c6;
-    border-radius: 0.5vw;
-    box-shadow: 0.8vw 0.8vw 0 0 #555555, inset 0.67vw 0.67vw 0 0 #fefefe;
-    padding-top: 1vw;
-    padding-left: 1vw;
-    margin-bottom: 2vw;
-  }
-
-  h1 {
-    margin: 1vw 2vw;
-    font-family: 'VT323', monospace;
-    font-size: 4vw;
-    color: #404040;
-  }
-
-  .number {
-    font-family: 'VT323', monospace;
-    font-size: 2vw;
-    color: #fefefe;
-    position: relative;
-    text-shadow: 0.4vw 0.8vw 0 0 #333;
-    top: -2vw;
-    right: -0.6vw;
-    cursor: default;
-  }
-
-  .slotSpace {
-    display: flex;
-    justify-content: center;
-    flex-wrap: nowrap;
-    margin: 1vw;
-  }
-
-  .slot {
-    flex: 0 0 calc(0.85 * ((100% - 2vw) / 10));
-    aspect-ratio: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #8b8b8b;
-    box-shadow: inset 0.225vw 0.225vw 0 rgba(55,55,55,0.8),
-                inset -0.297vw -0.297vw 0 #ffffff;
-    margin: 0.45vw;
-  }
-
-  .last-row {
-    border: 0.33vw solid gold;
-    padding: 0.5vw;
-  }
-
-  .item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 90%;
-    height: 90%;
-  }
-
-  .item img {
-    width: 90%;
-  }
-
-  .ghostItem img {
-    width: 90%;
-  }
-
-  .ghostItem .number {
-    top: -1.33vw;
-    right: -0.67vw;
-  }
-
-  .copy {
-    font-family: 'VT323', monospace;
-    font-size: 3vw;
-    width: 90%;
-    display: flex;
-    justify-content: flex-end;
-    color: #333;
-  }
-
-  a {
-    color: inherit;
-    text-decoration: inherit;
-  }
-
-  .content {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Open Scanner Button styling */
-  .btn-green {
-    background-color: #4CAF50;
-    color: white;
-    font-size: 1.2rem;
-    padding: 15px 30px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin: 20px auto;
-    display: block;
-  }
-
-  .btn-green:hover {
-    background-color: #45a049;
-  }
-</style>
-{% endblock extrastyle %}
-
 {% block content %}
 <!-- Scanner Modal (hidden by default) -->
-<div id="scannerContainer" class="bg-black/50 fixed top-0 pl-[20vw] w-full h-full flex justify-center items-center !z-[9999]">
+<div id="scannerContainer" class="fixed top-0 left-0 w-full h-full bg-black/50 flex justify-center items-center z-[9999]">
   <div id="scannerModal" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-5/6 bg-amber-50 rounded-lg flex flex-col items-center">
     <div class="w-full h-full flex flex-col items-center gap-2">
       <div class="w-full h-12 flex items-center justify-center bg-slate-800 px-4 rounded-t-lg">
         <span class="text-xl font-bold text-white">🧟‍♂️Inventory Scanner</span>
-        <span class="close-btn ml-auto text-red-500 cursor-pointer" onclick="closeScanner()">×</span>
+        <span class="ml-auto text-red-500 cursor-pointer text-2xl" onclick="closeScanner()">×</span>
       </div>
       <!-- Video feed -->
       <div class="flex-1 mx-4">
@@ -210,130 +32,30 @@
     <button id="confirmAddBtn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add</button>
   </div>
 </div>
+  
+<div class="pc-container">
+  <!-- Detail View Modal -->
+  <div id="detailModal" class="fixed top-0 right-0 w-[30vw] h-screen bg-white shadow-lg p-8 z-[10000] transform translate-x-full transition-transform duration-300 ease-in-out">
+    <span class="absolute top-4 right-4 text-2xl cursor-pointer" onclick="closeDetailModal()">×</span>
+    <div id="detailContent" class="flex flex-col items-center">
+      <h2 id="detailTitle" class="text-2xl font-bold mb-4"></h2>
+      <img id="detailImage" class="w-full max-w-[200px] h-auto my-4" src="" alt="">
+      <p id="detailDescription" class="my-4 leading-relaxed"></p>
+      <p id="detailQuantity" class="text-xl text-gray-600"></p>
+    </div>
+  </div>
+  <div id="modalOverlay" class="fixed top-0 left-0 w-full h-full bg-black/50 z-[9999] hidden" onclick="closeDetailModal()"></div>
+
+  <div class="flex flex-col items-center justify-center">
+    <div class="w-full h-16 flex items-center justify-center pl-12 pr-8">
+      <h1 class="text-3xl font-bold text-slate-800">Inventory</h1>
+      <button id="openScannerBtn" class="ml-auto bg-slate-800 hover:bg-slate-600 px-4 py-2 rounded-md text-white font-bold transition-all duration-300">Add Items</button>
+    </div>
+    <div id="inventory" class="grid grid-cols-4 gap-4 p-4 max-w-[1200px] mx-auto">
+    </div>
+  </div>
+</div>
 
 <!-- JavaScript for Scanner functionality and annotation -->
 <script src="{{ url_for('static', filename='assets/js/pages/inventory.js') }}"></script>
-
-<!-- Minecraft Inventory Content -->
-<div class="container">
-  <!-- Optional filler above inventory -->
-  <div style="margin-bottom: 3vw;">Filler.</div>
-
-  <!-- Minecraft Inventory Section -->
-  <section class="inventory-section" style="margin-top: 3vw;">
-    <div class="content">
-      <div class="inventory">
-        <!-- Row 1 (10 slots) -->
-        <div class="slotSpace">
-          <div id="slot0" class="slot"></div>
-          <div id="slot1" class="slot"></div>
-          <div id="slot2" class="slot">
-            <div class="item" id="wood">
-              <img src="{{ url_for('static', filename='assets/images/items/wood.png') }}" alt="wood">
-              <div class="number">33</div>
-            </div>
-          </div>
-          <div id="slot3" class="slot"></div>
-          <div id="slot4" class="slot"></div>
-          <div id="slot5" class="slot"></div>
-          <div id="slot6" class="slot">
-            <div class="item" id="cobblestone-small">
-              <img src="{{ url_for('static', filename='assets/images/items/cobblestone.png') }}" alt="cobblestone">
-              <div class="number">3</div>
-            </div>
-          </div>
-          <div id="slot7" class="slot"></div>
-          <div id="slot8" class="slot">
-            <div class="item" id="cobblestone-large">
-              <img src="{{ url_for('static', filename='assets/images/items/cobblestone.png') }}" alt="cobblestone">
-              <div class="number">14</div>
-            </div>
-          </div>
-          <div id="slot9" class="slot"></div>
-        </div>
-
-        <!-- Row 2 (10 slots) -->
-        <div class="slotSpace">
-          <div id="slot10" class="slot">
-            <div class="item" id="diamond_sword">
-              <img src="{{ url_for('static', filename='assets/images/items/diamond-sword.png') }}" alt="diamond sword">
-              <div class="number">1</div>
-            </div>
-          </div>
-          <div id="slot11" class="slot">
-            <div class="item" id="steak">
-              <img src="{{ url_for('static', filename='assets/images/items/steak.png') }}" alt="steak">
-              <div class="number">12</div>
-            </div>
-          </div>
-          <div id="slot12" class="slot">
-            <div class="item" id="diamond">
-              <img src="{{ url_for('static', filename='assets/images/items/diamond.png') }}" alt="diamond">
-              <div class="number">33</div>
-            </div>
-          </div>
-          <div id="slot13" class="slot">
-            <div class="item" id="golden_apple">
-              <img src="{{ url_for('static', filename='assets/images/items/apple.gif') }}" alt="golden apple">
-              <div class="number">8</div>
-            </div>
-          </div>
-          <div id="slot14" class="slot">
-            <div class="item" id="iron_ingot">
-              <img src="{{ url_for('static', filename='assets/images/items/iron.png') }}" alt="iron ingot">
-              <div class="number">12</div>
-            </div>
-          </div>
-          <div id="slot15" class="slot">
-            <div class="item" id="pic_diamond">
-              <img src="{{ url_for('static', filename='assets/images/items/diamond-pickaxe.png') }}" alt="diamond pickaxe">
-              <div class="number">1</div>
-            </div>
-          </div>
-          <div id="slot16" class="slot">
-            <div class="item" id="cobblestone-extra">
-              <img src="{{ url_for('static', filename='assets/images/items/cobblestone.png') }}" alt="cobblestone">
-              <div class="number">32</div>
-            </div>
-          </div>
-          <div id="slot17" class="slot"></div>
-          <div id="slot18" class="slot"></div>
-          <div id="slot19" class="slot"></div>
-        </div>
-
-        <!-- Row 3 (10 slots) -->
-        <div class="slotSpace">
-          <div id="slot20" class="slot"></div>
-          <div id="slot21" class="slot"></div>
-          <div id="slot22" class="slot"></div>
-          <div id="slot23" class="slot"></div>
-          <div id="slot24" class="slot"></div>
-          <div id="slot25" class="slot"></div>
-          <div id="slot26" class="slot"></div>
-          <div id="slot27" class="slot"></div>
-          <div id="slot28" class="slot"></div>
-          <div id="slot29" class="slot"></div>
-        </div>
-
-        <!-- Row 4 (10 slots) with a gold border -->
-        <div class="slotSpace last-row">
-          <div id="slot30" class="slot"></div>
-          <div id="slot31" class="slot"></div>
-          <div id="slot32" class="slot"></div>
-          <div id="slot33" class="slot"></div>
-          <div id="slot34" class="slot"></div>
-          <div id="slot35" class="slot"></div>
-          <div id="slot36" class="slot"></div>
-          <div id="slot37" class="slot"></div>
-          <div id="slot38" class="slot"></div>
-          <div id="slot39" class="slot"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <!-- Open Scanner Button below the inventory/crafting table -->
-  <button id="openScannerBtn" class="btn-green">Open Scanner</button>
-</div>
-
-<script src="{{ url_for('static', filename='assets/js/pages/minecraftInventory.js') }}"></script>
 {% endblock %}

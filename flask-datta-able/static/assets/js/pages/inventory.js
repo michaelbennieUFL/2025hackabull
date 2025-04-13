@@ -3,6 +3,7 @@ const canvas = document.getElementById('annotatedCanvas');
 const loading = document.getElementById('loading');
 const ctx = canvas.getContext('2d');
 const capture = document.getElementById('capture-btn');
+const inventory = document.getElementById('inventory');
 
 // Helper: Convert a data URL to a Blob
 function dataURLtoBlob(dataURL) {
@@ -226,18 +227,53 @@ async function storeAnnotation(annotation) {
 
 function updateInventoryDisplay() {
   const inventory = JSON.parse(localStorage.getItem('inventory') ?? "[]");
+  const inventoryContainer = document.getElementById('inventory');
   
-  for(let i=0; i<inventory.length; i++) {
-    const item = inventory[i];
-    const slot = document.getElementById(`slot${i}`);
-    slot.innerHTML = `
-      <div class="item">
-        <img src="${item.image}" alt="${item.name}">
-        <span>${item.name}</span>
-        <span>${item.quantity}</span>
-      </div>
+  // Clear existing content
+  inventoryContainer.innerHTML = '';
+  
+  // Create grid items
+  inventory.forEach((item, index) => {
+    const itemElement = document.createElement('div');
+    itemElement.className = 'bg-gray-500 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-transform hover:-translate-y-1 shadow-md';
+    itemElement.dataset.index = index;
+    itemElement.onclick = () => showItemDetail(item);
+    
+    itemElement.innerHTML = `
+      <img src="${item.image}" alt="${item.name}" class="w-full max-w-[150px] h-auto mb-2">
+      <span class="font-bold mb-1">${item.name}</span>
+      <span class="text-gray-600">Quantity: ${item.quantity}</span>
     `;
-  }
+    
+    inventoryContainer.appendChild(itemElement);
+  });
+}
+
+function showItemDetail(item) {
+  const modal = document.getElementById('detailModal');
+  const overlay = document.getElementById('modalOverlay');
+  const title = document.getElementById('detailTitle');
+  const image = document.getElementById('detailImage');
+  const description = document.getElementById('detailDescription');
+  const quantity = document.getElementById('detailQuantity');
+  
+  // Update modal content
+  title.textContent = item.name;
+  image.src = item.image;
+  description.textContent = item.description || 'No description available';
+  quantity.textContent = `Quantity: ${item.quantity}`;
+  
+  // Show modal and overlay
+  modal.classList.remove('translate-x-full');
+  overlay.classList.remove('hidden');
+}
+
+function closeDetailModal() {
+  const modal = document.getElementById('detailModal');
+  const overlay = document.getElementById('modalOverlay');
+  
+  modal.classList.add('translate-x-full');
+  overlay.classList.add('hidden');
 }
 
 // Initialize camera stream and capture functionality for the Inventory Scanner
@@ -295,15 +331,13 @@ window.addEventListener('DOMContentLoaded', () => {
   // Set up the Open Scanner button event
   const openScannerBtn = document.getElementById('openScannerBtn');
   openScannerBtn.addEventListener('click', () => {
-    document.getElementById('scannerModal').style.display = 'block';
-    document.getElementById('scannerContainer').style.display = 'block';
+    document.getElementById('scannerContainer').classList.remove('hidden');
   });
 });
 
 // Function to close the scanner modal
 function closeScanner() {
-  document.getElementById('scannerModal').style.display = 'none';
-  document.getElementById('scannerContainer').style.display = 'none';
+  document.getElementById('scannerContainer').classList.add('hidden');
   
   // Reset the video stream
   video.style.display = 'block';
@@ -355,3 +389,5 @@ async function renderCanvas() {
     };
   }
 }
+
+updateInventoryDisplay();

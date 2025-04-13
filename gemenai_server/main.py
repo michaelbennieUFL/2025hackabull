@@ -152,7 +152,7 @@ def analyze_segment_items():
 
     try:
         response_json = client.models.generate_content(
-            model="gemini-2.0-pro-exp",
+            model=model_name,
             contents=[prompt, im],
             config=types.GenerateContentConfig(
                 temperature=0.5,
