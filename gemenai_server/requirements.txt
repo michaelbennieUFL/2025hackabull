@@ -1,0 +1,10 @@
+flask
+google.generativeai
+python-dotenv
+pandas
+numpy
+requests
+openpyxl
+Pillow
+dotenv
+flask-cors

@@ -1,12 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>{% block title %}{% endblock title %} | Datta able Dashboard Template</title>
+    <title>{% block title %}{% endblock title %} | Survival System</title>
+    
     {% include "includes/head.html" %}
-    {% block extrastyle %}{% endblock extrastyle %}
+
+    {% block extrastyle %}
+    <style>
+      /* 移除原本两个浮动的圆球背景 */
+      .auth-bg {
+        display: none !important;
+      }
+
+      /* 可选：调整 body 背景为深色或透明更契合像素风 */
+      body {
+        background-color: transparent !important;
+      }
+    </style>
+    {% endblock extrastyle %}
   </head>
 
-  <body data-pc-preset="preset-1" data-pc-sidebar-caption="true" data-pc-direction="ltr" data-pc-theme="light">
+  <body data-pc-preset="preset-1"
+        data-pc-sidebar-caption="true"
+        data-pc-direction="ltr"
+        data-pc-theme="light">
+
+    <!-- 🌆 像素风全屏背景动图 -->
+    <div style="position: fixed; bottom: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;">
+      <img src="{{ url_for('static', filename='assets/images/background.gif') }}"
+           style="width: 100%; height: 100%; object-fit: cover; opacity: 0.2;">
+    </div>
+
     {% block loader %}
       {% include "includes/loader.html" %}
     {% endblock loader %}

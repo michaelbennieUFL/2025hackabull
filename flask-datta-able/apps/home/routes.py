@@ -174,4 +174,4 @@ def crafting():
 
 @blueprint.route('/gps')
 def gps():
-    return render_template('pages/gps.html', segment='gps')
+    return render_template('pages/sample-page.html', segment='gps')
