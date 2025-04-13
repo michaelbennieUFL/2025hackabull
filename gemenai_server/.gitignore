@@ -1,2 +1,10 @@
 __pycache__
 .env
+*.jpg
+*.png
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.ico
+*.webp

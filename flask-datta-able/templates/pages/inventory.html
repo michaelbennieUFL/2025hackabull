@@ -2,17 +2,17 @@
 
 {% block content %}
 <!-- Scanner Modal (hidden by default) -->
-<div id="scannerContainer" class="hidden fixed top-0 left-0 w-full h-full bg-black/50 flex justify-center items-center z-[9999]">
-  <div id="scannerModal" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-5/6 bg-amber-50 rounded-lg flex flex-col items-center">
+<div id="scannerContainer" class="hidden fixed top-0 left-0 w-full h-full bg-black/50 backdrop-blur-[2px] flex justify-center items-center z-[9999]" onclick="closeScanner()">
+  <div id="scannerModal" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-5/6 bg-amber-50 rounded-xl shadow-2xl flex flex-col items-center" onclick="event.stopPropagation()">
     <div class="w-full h-full flex flex-col items-center gap-2">
-      <div class="w-full h-12 flex items-center justify-center bg-slate-800 px-4 rounded-t-lg">
+      <div class="w-full h-12 flex items-center justify-center bg-slate-800 px-4 rounded-t-xl">
         <span class="text-xl font-bold text-white">🧟‍♂️Inventory Scanner</span>
-        <span class="ml-auto text-red-500 cursor-pointer text-2xl" onclick="closeScanner()">×</span>
+        <span class="ml-auto text-red-500 cursor-pointer text-2xl hover:text-red-400 transition-colors duration-200" onclick="closeScanner()">×</span>
       </div>
       <!-- Video feed -->
       <div class="flex-1 mx-4">
-        <video id="camera-stream" class="w-full h-full" autoplay playsinline></video>
-        <canvas id="annotatedCanvas" class="hidden w-full h-full"></canvas>
+        <video id="camera-stream" class="w-full h-full rounded-lg" autoplay playsinline></video>
+        <canvas id="annotatedCanvas" class="hidden w-full h-full rounded-lg"></canvas>
         <div id="loading" class="hidden w-full h-full flex justify-center items-center">
           <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-gray-300 rounded-full animate-pulse"></div>
         </div>
@@ -24,39 +24,75 @@
 </div>
 
 <!-- Add to Inventory Popup Modal -->
-<div id="addToInventoryModal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 shadow-lg z-[10000] hidden flex flex-col items-center justify-center">
-  <h3 class="text-xl font-bold mb-4">Add to Inventory?</h3>
-  <p id="itemDetails" class="mb-4"></p>
+<div id="addToInventoryModal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl p-6 shadow-2xl z-[10000] hidden flex flex-col items-center justify-center">
+  <h3 class="text-xl font-bold mb-4 text-amber-900">Add to Inventory?</h3>
+  <p id="itemDetails" class="mb-4 text-slate-700"></p>
   <div class="flex justify-end space-x-4">
-    <button id="cancelAddBtn" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
-    <button id="confirmAddBtn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add</button>
+    <button id="cancelAddBtn" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition-colors duration-200">Cancel</button>
+    <button id="confirmAddBtn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-200">Add</button>
   </div>
 </div>
   
 <div class="pc-container">
   <!-- Detail View Modal -->
-  <div id="detailModal" class="fixed top-0 right-0 w-[30vw] h-screen bg-white shadow-lg p-8 z-[10000] transform translate-x-full transition-transform duration-300 ease-in-out">
-    <span class="absolute top-4 right-4 text-2xl cursor-pointer" onclick="closeDetailModal()">×</span>
-    <div id="detailContent" class="flex flex-col items-center">
-      <h2 id="detailTitle" class="text-2xl font-bold mb-4"></h2>
-      <img id="detailImage" class="w-full max-w-[200px] h-auto my-4" src="" alt="">
-      <p id="detailDescription" class="my-4 leading-relaxed"></p>
+  <div id="detailModal" class="fixed top-0 right-0 w-[30vw] h-screen bg-amber-50 shadow-2xl shadow-black pt-0 z-[10000] transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-scroll">
+    <div class="w-full flex flex-row sticky top-0 bg-amber-50 z-10 p-2 border-b border-amber-200">
+      <button class="text-red-500 w-8 h-8 p-1 rounded-full flex items-center justify-center text-2xl font-bold ml-auto hover:bg-red-50 transition-colors duration-200" onclick="closeDetailModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="50" height="50" viewBox="0 0 48 48">
+          <path fill="#F44336" d="M21.5 4.5H26.501V43.5H21.5z" transform="rotate(45.001 24 24)"></path><path fill="#F44336" d="M21.5 4.5H26.5V43.501H21.5z" transform="rotate(135.008 24 24)"></path>
+        </svg>
+      </button>
     </div>
-    <div class="flex flex-row mt-auto items-center justify-between">
-      <button id="detailDeleteBtn" class="ml-auto px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+    <div id="detailContent" class="flex flex-col items-center p-8">
+      <h2 id="detailTitle" class="text-3xl text-amber-900 mt-4 font-bold mb-4"></h2>
+      <img id="detailImage" class="w-full max-w-[200px] h-auto my-4 rounded-xl shadow-lg" src="" alt="">
+      <p id="detailDescription" class="my-4 text-slate-700 leading-relaxed"></p>
+    </div>
+    <div class="flex flex-row items-center justify-between p-4 border-t border-amber-200">
+      <button id="detailDeleteBtn" class="ml-auto px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200">Delete</button>
     </div>
   </div>
-  <div id="modalOverlay" class="fixed top-0 left-0 w-full h-full bg-black/50 z-[9999] overflow-y-scroll hidden" onclick="closeDetailModal()"></div>
+  <div id="modalOverlay" class="fixed top-0 left-0 w-full h-full bg-black/50 z-[9999] overflow-y-scroll hidden backdrop-blur-[2px]" onclick="closeDetailModal()"></div>
 
-  <div class="flex flex-col items-center justify-center">
-    <div class="w-full h-16 flex items-center justify-center pl-12 pr-8">
-      <h1 class="text-3xl font-bold text-slate-800">Inventory</h1>
-      <button id="openScannerBtn" class="ml-auto bg-slate-800 hover:bg-slate-600 px-4 py-2 rounded-md text-white font-bold transition-all duration-300">Add Items</button>
+  <div class="pc-content">
+    <div class="page-header">
+      <div class="page-block">
+        <div class="row align-items-center">
+          <div class="w-full">
+            <div class="flex flex-row items-center justify-center">
+              <h2 class="mb-0 text-center font-bold text-3xl text-amber-900">Inventory</h2>    
+              <div class="ml-auto h-16 flex items-center justify-center pl-12 pr-8">
+                <button id="openScannerBtn" class="ml-auto bg-slate-800 hover:bg-slate-600 px-4 py-2 rounded-md text-white font-bold transition-all duration-300">Add Items</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div id="inventory" class="grid grid-cols-4 gap-4 p-4 mx-8">
+
+    <div class="row flex flex-col gap-16 p-4">
+      <div class="flex flex-col items-center justify-center gap-6">
+        
+        <div id="inventory" class="grid grid-cols-4 gap-4 p-4 mx-8">
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
+{% block extrastyle %}
+<style>
+  .shadow-inset {
+    box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  }
+  .inventory-item {
+    transition: transform 0.2s ease-in-out;
+  }
+  .inventory-item:hover {
+    transform: translateY(-2px);
+  }
+</style>
+{% endblock extrastyle %}
 
 <!-- JavaScript for Scanner functionality and annotation -->
 <script src="{{ url_for('static', filename='assets/js/pages/inventory.js') }}"></script>
