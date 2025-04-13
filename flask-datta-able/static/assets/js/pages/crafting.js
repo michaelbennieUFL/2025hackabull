@@ -16,7 +16,7 @@ const selectedRecipeObject = {
 async function loadRecipes() {
     showLoadingAnimation();
 
-    const materials = JSON.parse(localStorage.getItem("materials") || "[]");
+    const materials = JSON.parse(localStorage.getItem("inventory") || "[]");
     if(!materials.length) {
         materials.push({
             "name": "stone",

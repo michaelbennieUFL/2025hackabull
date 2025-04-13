@@ -1,0 +1,147 @@
+
+
+
+
+
+
+
+
+
+
+
+<!-- 📦 Inventory Scanner Modal -->
+<div id="scannerModal" class="modal">
+  <div id="scannerHeader"> 🧟‍♂️Inventory Scanner <span class="close-btn" onclick="closeScanner()">×</span></div>
+  <div class="modal-content">
+    <video id="camera-stream" autoplay playsinline></video><br>
+    <button id="capture-btn" class="btn btn-scan">⚠️ Scan Item</button><br>
+    <img id="preview" src="#" alt="Scanned Image" style="display: none; margin: 40px auto 0 auto; max-width: 80%;">
+  </div>
+</div>
+
+<style>
+  .modal {
+    position: fixed;
+    top: 100px;
+    left: 100px;
+    width: 720px;
+    max-width: 90%;
+    background-color: #f2e6b4;
+    border: 3px dashed #aa8800;
+    border-radius: 10px;
+    box-shadow: 0 0 15px #333;
+    z-index: 9999;
+  }
+
+  #scannerHeader {
+    cursor: move;
+    padding: 12px;
+    background-color: #aa8800;
+    font-weight: bold;
+    color: #2f2f2f;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+  }
+
+  .modal-content {
+    padding: 20px;
+    text-align: center;
+  }
+
+  .close-btn {
+    float: right;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #2f2f2f;
+  }
+
+  .btn-scan {
+    background-color: #aa8800;
+    color: black;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    margin-top: 15px;
+    font-size: 1.1rem;
+  }
+
+  .btn-scan:hover {
+    background-color: #ffcc00;
+    transform: scale(1.05);
+  }
+</style>
+
+<script>
+  // 打开相机功能
+  window.addEventListener('DOMContentLoaded', () => {
+
+    const video = document.getElementById('camera-stream');
+    const canvas = document.createElement('canvas');
+    const preview = document.getElementById('preview');
+    const button = document.getElementById('capture-btn');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        alert("Camera access denied or unavailable.");
+        console.error(err);
+      });
+
+    button.addEventListener('click', () => {
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataURL = canvas.toDataURL('image/png');
+      preview.src = dataURL;
+      preview.style.display = 'block';
+    });
+  });
+
+  // 关闭 scanner 窗口
+  function closeScanner() {
+    document.getElementById('scannerModal').style.display = 'none';
+  }
+
+  // 让 scannerModal 可拖动
+  dragElement(document.getElementById("scannerModal"));
+
+  function dragElement(elmnt) {
+    const header = document.getElementById("scannerHeader");
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    if (header) {
+      header.onmousedown = dragMouseDown;
+    }
+
+    function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // 鼠标位置
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // 计算新的位置
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+      elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+  }
+</script>
