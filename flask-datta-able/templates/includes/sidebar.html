@@ -58,24 +58,24 @@
         <div class="card pc-user-card bg-transparent">
           <!-- Button that triggers QR Modal -->
           <button id="qrDownloadBtn" class="btn w-100" style="
-          background-color: #1f1f1f;
-          color: #ffffff;
-          border: none;
-          font-weight: bold;
-          font-family: 'Courier New', Courier, monospace;
+            background-color: #1f1f1f;
+            color: #ffffff;
+            border: none;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
           ">
-          <span class="pc-micon"><i data-feather="download"></i></span>
-          Download
+            <span class="pc-micon"><i data-feather="download"></i></span>
+            Download
           </button>
 
           <!-- QR Modal -->
           <div id="qrModal" class="modal" style="display: none;">
-          <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2 class="rank-title">Rank</h2>
-            <div id="qrContainer" class="qr-box"></div>
-          </div>
-          </div>
+            <div class="modal-content">
+              <span class="close" onclick="closeModal()">&times;</span>
+              <h2 class="rank-title">User Info</h2>
+              <div id="qrContainer" class="qr-box"></div>
+            </div>
+          </div>          
 
           <!-- Modal Style -->
           <style>
@@ -101,6 +101,8 @@
               font-family: 'Courier New', Courier, monospace;
               box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
               position: relative;
+              justify-content: center;
+              align-items: center;
             }
 
             .close {
@@ -117,6 +119,8 @@
               font-size: 28px;
               color: #333;
               margin-bottom: 20px;
+              font-weight: bold;
+
             }
 
             .qr-box canvas {

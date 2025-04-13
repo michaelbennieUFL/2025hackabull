@@ -12,3 +12,28 @@
 <script>layout_rtl_change('false');</script>
 <script>preset_change("preset-1");</script>
 <script>layout_theme_sidebar_change('false');</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+function generateQRCode() {
+  const payload = {
+    username: "Anthony",
+    inventory: ["Water", "Flashlight", "First Aid Kit"]
+  };
+
+  document.getElementById("qrModal").style.display = "block";
+
+  const qrContainer = document.getElementById("qrcode");
+  qrContainer.innerHTML = ""; // Clear existing QR if any
+
+  new QRCode(qrContainer, {
+    text: JSON.stringify(payload),
+    width: 128,
+    height: 128
+  });
+}
+
+function closeModal() {
+  document.getElementById("qrModal").style.display = "none";
+}
+</script>
