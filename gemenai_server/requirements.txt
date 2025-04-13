@@ -5,3 +5,6 @@ pandas
 numpy
 requests
 openpyxl
+Pillow
+dotenv
+flask-cors
