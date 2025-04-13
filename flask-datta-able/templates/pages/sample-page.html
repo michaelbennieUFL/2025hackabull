@@ -83,6 +83,14 @@
     font-weight: bold;
     margin-top: 6px;
   }
+  .forecast-section p {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1rem;
+  }
+  .tracker-section p {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1rem;
+  }
 
   h5 {
     color: #ffcc00 !important;
@@ -111,11 +119,11 @@
           <div class="card-body p-0" style="display: flex; height: 760px;">
 
             <!-- DASHBOARD -->
-            <div id="dashboard">
+            <div class="mb-4" id="dashboard">
 
               <!-- Forecast -->
               <div class="forecast-section">
-                <h5 style="color: #1a1a1a; font-weight: bold; text-align: center;">FORECAST</h5>
+                <h1 class="text-slate-500 text-3xl" style="font-weight: bold; text-align: center;">FORECAST</h1>
                 <hr style="border: 2px solid black; margin: 8px 0;">
                 <p><strong>Status:</strong> <span id="weather-status">--</span></p>
                 <p><strong>Location:</strong> <span id="forecast-location">--</span></p>
@@ -125,7 +133,7 @@
 
               <!-- Tracker -->
               <div class="tracker-section">
-                <h5 style="color: #1a1a1a; font-weight: bold; text-align: center;">TRACKER</h5>
+                <h1 class="text-slate-500 text-3xl" style="font-weight: bold; text-align: center;">TRACKER</h5>
                 <hr style="border: 2px solid black; margin: 8px 0;">
                 <p><strong>Latitude:</strong> <span id="lat">--</span></p>
                 <p><strong>Longitude:</strong> <span id="lon">--</span></p>

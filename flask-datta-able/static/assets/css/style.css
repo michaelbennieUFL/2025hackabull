@@ -8,6 +8,19 @@ File: style.css
 =========================================================================
 =================================================================================== */
 @import url("../fonts/phosphor/duotone/style.css");
+@import url('https://fonts.googleapis.com/css2?family=Jersey+15');
+
+h1, h2 {
+  font-family: 'Jersey 15', monospace;
+  letter-spacing: 0.08em;
+  font-size: 2rem;
+}
+h3, h4, h5, h6 {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
 :root {
   --bs-body-bg: #fff;
   --bs-body-bg-rgb: 255, 255, 255;

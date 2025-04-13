@@ -1,6 +1,6 @@
 <nav class="pc-sidebar">
   <div class="navbar-wrapper">
-    <div class="m-header flex flex-col items-center justify-center my-8">
+    <div class="m-header flex flex-col items-center justify-center my-8 rounded-xl">
       <a href="{{ url_for('home_blueprint.index') }}" class="b-brand text-black">
         <img src="{{ url_for('static', filename='assets/images/user/Survive_Icon.png') }}" 
              class="img-fluid" alt="Survival System Logo" 
@@ -11,7 +11,7 @@
     </div>
     <div class="navbar-content">
 
-      <ul class="pc-navbar font-monospace font-bold">
+      <ul class="pc-navbar font-monospace font-bold text-xl">
 
         <li class="pc-item pc-caption">
           <label>Survival System</label>
@@ -26,7 +26,7 @@
         <li class="pc-item">
           <a href="{{ url_for('home_blueprint.main_panel') }}" class="pc-link">
             <span class="pc-micon"><i data-feather="layout"></i></span>
-            <span class="pc-mtext">Main Panel</span>
+            <span class="pc-mtext">Passport</span>
           </a>
         </li>
       
