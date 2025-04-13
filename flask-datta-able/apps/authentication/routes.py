@@ -83,12 +83,13 @@ def login():
 @blueprint.route('/register', methods=['GET', 'POST'])
 def register():
     create_account_form = CreateAccountForm(request.form)
+
     if 'register' in request.form:
 
         username = request.form['username']
         email = request.form['email']
 
-        # Check usename exists
+        # Check if username exists
         user = Users.query.filter_by(username=username).first()
         if user:
             return render_template('authentication/register.html',
@@ -96,7 +97,7 @@ def register():
                                    success=False,
                                    form=create_account_form)
 
-        # Check email exists
+        # Check if email exists
         user = Users.query.filter_by(email=email).first()
         if user:
             return render_template('authentication/register.html',
@@ -104,22 +105,25 @@ def register():
                                    success=False,
                                    form=create_account_form)
 
-        # else we can create the user
-        user = Users(**request.form)
+        # Create user manually with role
+        user = Users(
+            username=request.form['username'],
+            email=request.form['email'],
+            password=request.form['password'],
+            role=request.form['role']  # 👈 确保这一行加上
+        )
+
         db.session.add(user)
         db.session.commit()
 
-        # Delete user from session
-        logout_user()
+        logout_user()  # Clear session
 
         return render_template('authentication/register.html',
                                msg='User created successfully.',
                                success=True,
                                form=create_account_form)
 
-    else:
-        return render_template('authentication/register.html', form=create_account_form)
-
+    return render_template('authentication/register.html', form=create_account_form)
 
 @blueprint.route('/logout')
 def logout():

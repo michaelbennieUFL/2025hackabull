@@ -4,7 +4,6 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 from flask_login import UserMixin
-
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
 
@@ -20,6 +19,7 @@ class Users(db.Model, UserMixin):
     email         = db.Column(db.String(64), unique=True)
     password      = db.Column(db.LargeBinary)
     bio           = db.Column(db.Text(), nullable=True)
+    role          = db.Column(db.String(64), nullable=True)  # <-- ✅ Add this field
 
     oauth_github  = db.Column(db.String(100), nullable=True)
     oauth_google  = db.Column(db.String(100), nullable=True)
@@ -28,16 +28,10 @@ class Users(db.Model, UserMixin):
 
     def __init__(self, **kwargs):
         for property, value in kwargs.items():
-            # depending on whether value is an iterable or not, we must
-            # unpack it's value (when **kwargs is request.form, some values
-            # will be a 1-element list)
             if hasattr(value, '__iter__') and not isinstance(value, str):
-                # the ,= unpack of a singleton fails PEP8 (travis flake8 test)
                 value = value[0]
-
             if property == 'password':
-                value = hash_pass(value)  # we need bytes here (not plain str)
-
+                value = hash_pass(value)
             setattr(self, property, value)
 
     def __repr__(self):
@@ -50,22 +44,21 @@ class Users(db.Model, UserMixin):
     @classmethod
     def find_by_username(cls, username: str) -> "Users":
         return cls.query.filter_by(username=username).first()
-    
+
     @classmethod
     def find_by_id(cls, _id: int) -> "Users":
         return cls.query.filter_by(id=_id).first()
-   
+
     def save(self) -> None:
         try:
             db.session.add(self)
             db.session.commit()
-          
         except SQLAlchemyError as e:
             db.session.rollback()
             db.session.close()
             error = str(e.__dict__['orig'])
             raise IntegrityError(error, 422)
-    
+
     def delete_from_db(self) -> None:
         try:
             db.session.delete(self)
