@@ -6,21 +6,22 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet"/>
 
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Jersey+15');
   .survivor-dashboard {
     font-family: 'Courier New', monospace;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.3);
     color: #fffae6;
     border-radius: 15px;
-    padding: 30px;
     margin: 30px auto;
+    padding-bottom: 12px;
     max-width: 1100px;
-    box-shadow: 0 0 25px rgba(255, 204, 0, 0.3);
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
     animation: fadeIn 1.5s ease-in-out;
   }
   .survivor-dashboard h2 {
-    color: #ffcc00;
-    text-shadow: 1px 1px 2px #000;
-    font-size: 2rem;
+    font-family: 'Jersey 15', monospace;
+    font-weight: 400;
+    font-style: normal;
     margin-bottom: 25px;
   }
 
@@ -32,43 +33,46 @@
   }
 
   .animated-card {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid #444;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 4px #00000066;
     border-radius: 12px;
     padding: 20px;
     flex: 1 1 calc(48% - 10px);
     min-width: 320px;
-    transition: transform 0.3s ease-in-out;
+    font-family: 'Jersey 15', monospace;
+    font-size: 1.5em;
     animation: fadeInUp 1s ease-in-out;
+    transition-duration: 0.3s;
   }
 
   .animated-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0 15px #ffaa00;
+    transform: translateY(-2px);
   }
 
   .label {
-    color: #77ddff;
-    font-weight: bold;
+    color: #b2dcb2;
+    font-size: 1.2em;
   }
 
   .value {
-    font-size: 1.3em;
-    color: #ffffff;
+    font-size: 1em;
+    color: #ddd;
   }
 
   .map-box, .chart-box {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid #444;
+    background-color: rgba(0, 0, 0, 0.3);
     border-radius: 12px;
     padding: 20px;
-    margin-top: 30px;
+    margin: 30px;
     animation: fadeIn 1.2s ease-in-out;
   }
 
   .map-box h4,
   .chart-box h4 {
-    color: #ffcc00;
+    color: #b2dcb2;
     margin-bottom: 15px;
   }
 
@@ -93,9 +97,10 @@
 <div class="pc-container">
   <div class="pc-content">
     <div class="survivor-dashboard animate__animated animate__fadeIn">
-      <h2 class="animate__animated animate__pulse animate__infinite text-center">🧭  Survivor Command Center</h2>
-
-      <div class="dashboard-row">
+      <div class="w-full bg-slate-900/80 flex justify-center items-center rounded-t-xl pt-6">
+        <h2 class="text-6xl text-white tracking-wider animate__animated animate__infinite text-center">&gt;&gt;&nbsp;&nbsp;Survivor Command Center&nbsp;&nbsp;&lt;&lt;</h2>
+      </div>
+      <div class="dashboard-row p-6">
         <div class="animated-card">
           <span class="label">📦 Resources Scanned Today:</span>
           <span class="value">52 units (metal, circuits, food)</span>
@@ -123,13 +128,13 @@
       </div>
       
 
-      <div class="map-box mt-5">
-        <h4>🗺️ Territory Map (Live Ping)</h4>
+      <div class="map-box mt-5 p-6">
+        <h4>Territory Map (Live Ping)</h4>
         <div id="survivor-map"></div>
       </div>
 
-      <div class="chart-box mt-4">
-        <h4>📊 Item Scanned Over Time <span style="font-size: 0.7em; color: #aaa;">(Hover for details)</span></h4>
+      <div class="chart-box p-6">
+        <h4>Items Scanned Over Time <span style="font-size: 0.7em; color: #aaa;">(Hover for details)</span></h4>
         <div id="chart-crafting"></div>
         <p style="color:#bbb; font-size: 0.9em; margin-top:10px;">
           📌 Tip: Resource spikes often occur right after enemy raids—be alert and harvest fast.

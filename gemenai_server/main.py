@@ -38,7 +38,7 @@ app = Flask(__name__)
 CORS(app)
 
 
-model_name = "gemini-2.5-pro-exp-03-25"
+model_name = "gemini-2.5-pro-preview-03-25"
 low_power_model_name = "gemini-1.5-flash-8b"
 
 safety_settings = [
