@@ -1,77 +1,460 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 <style>
   body {
     background-color: #f1ddbf !important;
   }
+
+  .legend {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: #ffffff;
+    border-style: solid;
+    color: black;
+    padding: 12px;
+    border-radius: 8px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .legend-item span {
+    margin-left: 6px;
+  }
+
+  #dashboard {
+    width: 25%;
+    min-width: 240px;
+    background-color: #b0aca9;
+    color: black;
+    border-right: 2px solid black;
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100%;
+  }
+
+  .tracker-section, .forecast-section {
+    padding: 20px;
+  }
+
+  .forecast-card-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  .forecast-card-today {
+    background-color: #c1e1ec;
+    font-family: 'Roboto', sans-serif;
+    color: black;
+    padding: 16px;
+    border-radius: 12px;
+    border: 2px solid black;
+    width: 160px;
+    height: 200px;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .forecast-card-today img {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 8px;
+  }
+
+  .forecast-card-today .condition {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-top: 6px;
+  }
+
 </style>
 
 <div class="pc-container">
   <div class="pc-content">
     <div class="row">
       <div class="col-sm-12">
-
-        <!-- GPS + Compass + Map -->
         <div id="map-container" class="card mb-4"
-             style="width: 100%; background-color: #1a1a1a; border: 2px solid black; border-radius: 16px; overflow: hidden;">
-          <div class="card-body p-0" style="display: flex; height: 500px;">
-            <div id="dashboard"
-                 style="width: 25%; min-width: 240px; padding: 20px; background-color: #b0aca9; color: black; border-right: 2px solid black; font-family: 'Courier New', monospace; display: flex; flex-direction: column; justify-content: space-between;">
-              <div>
-                <h5 style="color: #1a1a1a; font-weight: bold;">GPS TRACKER</h5>
-                <p><strong>Status:</strong> <span id="status">Searching for location...</span></p>
+             style="width: 100%; background-color: #1a1a1a; border: 2px solid black; border-radius: 16px; overflow: hidden; position: relative;">
+          <div class="card-body p-0" style="display: flex; height: 760px;">
+
+            <!-- DASHBOARD -->
+            <div id="dashboard">
+
+              <!-- Forecast -->
+              <div class="forecast-section">
+                <h5 style="color: #1a1a1a; font-weight: bold; text-align: center;">FORECAST</h5>
+                <hr style="border: 2px solid black; margin: 8px 0;">
+                <p><strong>Status:</strong> <span id="weather-status">--</span></p>
+                <p><strong>Location:</strong> <span id="forecast-location">--</span></p>
+                <p><strong>Date:</strong> <span id="today-date">--</span></p>
+                <div id="forecast" class="forecast-card-wrapper"></div>
+              </div>
+
+              <!-- Tracker -->
+              <div class="tracker-section">
+                <h5 style="color: #1a1a1a; font-weight: bold; text-align: center;">TRACKER</h5>
+                <hr style="border: 2px solid black; margin: 8px 0;">
                 <p><strong>Latitude:</strong> <span id="lat">--</span></p>
                 <p><strong>Longitude:</strong> <span id="lon">--</span></p>
-              </div>
-              <div class="text-center">
-                <h5 style="font-size: 20px;">🧭</h5>
-                <div id="compass"
-                     style="margin: 0 auto; width: 150px; height: 150px; border: 2px dashed black; border-radius: 50%; position: relative;">
-                  <div id="needle"
-                       style="width: 4px; height: 70px; background: #ff4d4d; position: absolute; top: 5px; left: 50%; transform: translateX(-50%) rotate(0deg); transform-origin: bottom;"></div>
-                </div>
-                <div style="margin-top: 25px;">
-                  <p style="color: black;"><strong>Direction:</strong> <span id="direction">--</span>°</p>
+                <div class="text-center" style="margin-top: 20px;">
+                  <div id="compass"
+                       style="margin: 0 auto; width: 150px; height: 150px; border: 2px dashed black; border-radius: 50%; position: relative;">
+                    <div id="needle"
+                         style="width: 4px; height: 70px; background: #ff4d4d; position: absolute; top: 5px; left: 50%; transform: translateX(-50%) rotate(0deg); transform-origin: bottom;"></div>
+                  </div>
+                  <div style="margin-top: 10px;">
+                    <p><strong>Direction:</strong> <span id="direction">--</span>°</p>
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- Map -->
-            <div id="map" style="flex: 1; height: 100%;"></div>
+            <div id="map" style="flex: 1; height: 100%; position: relative;"></div>
+          </div>
+
+          <!-- Legend -->
+          <div class="legend">
+            <div class="legend-item">💧<span>Water</span></div>
+            <div class="legend-item">🍎<span>Food</span></div>
+            <div class="legend-item">🏕️<span>Shelter</span></div>
+            <div class="legend-item">🔧<span>Tools/Supplies</span></div>
           </div>
         </div>
-
-        <!-- Forecast Section -->
-        <div id="forecast-container" class="card mb-4"
-             style="width: 100%; background-color: #1a1a1a; border: 2px solid black; border-radius: 16px; overflow: hidden;">
-          <div class="card-body p-0" style="display: flex; height: 360px;">
-            <div id="weather-summary"
-                 style="width: 25%; min-width: 240px; padding: 20px; background-color: #b0aca9; color: black; border-right: 2px solid black; font-family: 'Courier New', monospace;">
-              <h5 style="font-weight: bold; color: #1a1a1a;">FORECAST</h5>
-              <p><strong>Status:</strong> <span id="weather-status">--</span></p>
-              <p><strong>Date:</strong> <span id="today-date">--</span></p>
-              <p><strong>Today:</strong> <span id="forecast-today">--</span></p>
-              <p><strong>Location:</strong> <span id="forecast-location">--</span></p>
-            </div>
-
-            <!-- Forecast Cards -->
-            <div id="forecast" style="flex: 1; padding: 20px; overflow-x: auto; display: flex; gap: 15px; color: white;">
-              <!-- Cards will be injected here -->
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
 </div>
 
-<!-- Google Maps JS API -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDzvKnGnLs9QWvrruXyQk8r41qXO4J5zyk"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDzvKnGnLs9QWvrruXyQk8r41qXO4J5zyk&libraries=places"></script>
 
 <script>
   const WEATHER_API_KEY = "ee223a09ef53459bb6c194718251204";
+
+  const customMapStyle = [
+  {
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#ebe3cd"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#523735"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#f5f1e6"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#c9b2a6"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.land_parcel",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.land_parcel",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#dcd2be"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.land_parcel",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#ae9e90"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.neighborhood",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "landscape.natural",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#dfd2ae"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#dfd2ae"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#93817c"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.business",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "color": "#a5b076"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#447530"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#f5f1e6"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "labels.icon",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road.arterial",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#fdfcf8"
+      }
+    ]
+  },
+  {
+    "featureType": "road.arterial",
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#f8c967"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#e9bc62"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway.controlled_access",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#e98d58"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway.controlled_access",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#db8555"
+      }
+    ]
+  },
+  {
+    "featureType": "road.local",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road.local",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#806b63"
+      }
+    ]
+  },
+  {
+    "featureType": "transit",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.line",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#dfd2ae"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.line",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#8f7d77"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.line",
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#ebe3cd"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.station",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#dfd2ae"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "color": "#b9d3c2"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "labels.text",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#92998d"
+      }
+    ]
+  }
+];
 
   function updateGPS() {
     if ("geolocation" in navigator) {
@@ -79,71 +462,108 @@
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
 
-        document.getElementById("status").textContent = "Location acquired";
         document.getElementById("lat").textContent = lat.toFixed(6);
         document.getElementById("lon").textContent = lon.toFixed(6);
 
         const map = new google.maps.Map(document.getElementById("map"), {
           center: { lat: lat, lng: lon },
-          zoom: 15,
+          zoom: 14,
           disableDefaultUI: false,
+          styles: customMapStyle
         });
 
         new google.maps.Marker({
           position: { lat: lat, lng: lon },
           map: map,
-          title: "You are here",
+          title: "You are here"
         });
 
+        fetchSurvivalPoints(lat, lon, map);
         fetchForecast(lat, lon);
-      }, function (error) {
-        document.getElementById("status").textContent = "Error getting location";
+      }, function () {
         document.getElementById("weather-status").textContent = "Error";
       });
-    } else {
-      document.getElementById("status").textContent = "Geolocation not supported";
-      document.getElementById("weather-status").textContent = "Unsupported";
     }
+  }
+
+  function fetchSurvivalPoints(lat, lon, map) {
+    const service = new google.maps.places.PlacesService(map);
+    const location = new google.maps.LatLng(lat, lon);
+
+    const categories = [
+      { type: "shelter", emoji: "🏕️", query: "park" },
+      { type: "food", emoji: "🍎", query: "grocery store" },
+      { type: "tools", emoji: "🔧", query: "hardware store" }
+    ];
+
+    const waterLocations = [
+      { lat: 28.060018, lng: -82.424796 },
+      { lat: 28.072653, lng: -82.378693 },
+      { lat: 28.079468, lng: -82.407862 },
+      { lat: 28.058842, lng: -82.438707 },
+      { lat: 28.066689, lng: -82.441147 },
+      { lat: 28.066151, lng: -82.383826 },
+      { lat: 28.060154, lng: -82.431383 },
+      { lat: 28.085957, lng: -82.420619 }, 
+      { lat: 28.076956, lng: -82.420579 }
+    ];
+
+    waterLocations.forEach(pos => {
+      new google.maps.Marker({
+        position: pos,
+        map: map,
+        icon: {
+          url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='0' height='0'></svg>"),
+          labelOrigin: new google.maps.Point(12, 10)
+        },
+        label: { text: "💧", fontSize: "22px" },
+        title: "Water Source"
+      });
+    });
+
+    categories.forEach(category => {
+      const request = { location, radius: 3218, keyword: category.query };
+      service.nearbySearch(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          results.forEach(place => {
+            new google.maps.Marker({
+              position: place.geometry.location,
+              map: map,
+              icon: {
+                url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='0' height='0'></svg>"),
+                labelOrigin: new google.maps.Point(12, 10)
+              },
+              label: { text: category.emoji, fontSize: "22px" },
+              title: place.name
+            });
+          });
+        }
+      });
+    });
   }
 
   function fetchForecast(lat, lon) {
     const url = `https://api.weatherapi.com/v1/forecast.json?key=${WEATHER_API_KEY}&q=${lat},${lon}&days=7&aqi=no&alerts=no`;
-
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        const locationName = `${data.location.name}, ${data.location.country}`;
-        const todayDesc = data.current.condition.text;
-        const todayDate = new Date(data.location.localtime).toLocaleDateString();
-
-        document.getElementById("forecast-location").textContent = locationName;
-        document.getElementById("forecast-today").textContent = todayDesc;
-        document.getElementById("today-date").textContent = todayDate;
+        const today = data.forecast.forecastday[0];
         document.getElementById("weather-status").textContent = "Active";
+        document.getElementById("forecast-location").textContent = `${data.location.name}, ${data.location.country}`;
+        document.getElementById("today-date").textContent = today.date;
 
-        const forecastDiv = document.getElementById("forecast");
-        forecastDiv.innerHTML = "";
-
-        data.forecast.forecastday.forEach(day => {
-          const date = day.date;
-          const temp = day.day.avgtemp_c.toFixed(1);
-          const desc = day.day.condition.text;
-          const icon = day.day.condition.icon;
-
-          const card = document.createElement("div");
-          card.style.backgroundColor = "#333";
-          card.style.padding = "10px";
-          card.style.borderRadius = "10px";
-          card.style.minWidth = "120px";
-          card.style.textAlign = "center";
-          card.innerHTML = `
-            <p style="font-weight:bold;">${date}</p>
-            <img src="${icon}" alt="icon">
-            <p>${temp}°C</p>
-            <p style="font-size: 0.8em;">${desc}</p>
-          `;
-          forecastDiv.appendChild(card);
-        });
+        const forecastHTML = `
+          <div class="forecast-card-wrapper">
+            <div class="forecast-card-today">
+              <div class="weather-icon-container">
+                <img src="${today.day.condition.icon}" alt="icon">
+                <p class="condition">${today.day.condition.text}</p>
+              </div>
+              <p><strong>${today.day.avgtemp_c.toFixed(1)}°C</strong></p>
+            </div>
+          </div>
+        `;
+        document.getElementById("forecast").innerHTML = forecastHTML;
       })
       .catch(err => {
         console.error("WeatherAPI fetch error:", err);
@@ -155,7 +575,6 @@
     const needle = document.getElementById("needle");
     const direction = document.getElementById("direction");
     const baseAngle = 30;
-
     setInterval(() => {
       const jitter = Math.floor(Math.random() * 8) - 3;
       const angle = baseAngle + jitter;
@@ -169,4 +588,5 @@
     smoothJitterCompass();
   });
 </script>
+
 {% endblock content %}

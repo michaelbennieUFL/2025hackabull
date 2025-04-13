@@ -13,6 +13,9 @@ from PIL import Image, ImageDraw, ImageFont, ImageColor
 from google import genai
 from google.genai import types
 
+
+from gemenai_server.items import item_types
+from flask_cors import CORS
 from items import item_types
 from pydantic import BaseModel
 
@@ -22,6 +25,7 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
+CORS(app)
 # Retrieve API key from environment (ensure you set GOOGLE_API_KEY)
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 model_name = "gemini-2.5-pro-exp-03-25"
