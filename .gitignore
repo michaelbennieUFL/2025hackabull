@@ -41,3 +41,4 @@ gemenai_sever/*.jpg
 
 node_modules/
 **/node_modules/
+.env
