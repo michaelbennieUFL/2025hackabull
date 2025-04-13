@@ -4,6 +4,8 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 import os
+
+from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_minify import Minify
 from sys import exit
@@ -23,6 +25,7 @@ except KeyError:
 
 app = create_app(app_config)
 
+CORS(app)
 
 with app.app_context():
     try:
@@ -45,4 +48,4 @@ if DEBUG:
     app.logger.info('DBMS             = ' + app_config.SQLALCHEMY_DATABASE_URI)
 
 if __name__ == "__main__":
-    app.run(port=5001)
+    app.run(port=5000)
