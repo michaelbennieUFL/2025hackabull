@@ -32,6 +32,43 @@
   </style>
 </head>
 
+<!-- QRCode Generator Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+  const userInfo = {
+    role: "{{ current_user.role if current_user.is_authenticated else 'Unknown' }}",
+    inventory: {{ (user_inventory or []) | tojson }}
+  };
+
+  function openQRModal() {
+    const modal = document.getElementById("qrModal");
+    modal.style.display = "flex";
+
+    const qrData = `Role: ${userInfo.role}\nInventory: ${userInfo.inventory.join(', ')}`;
+    const qrContainer = document.getElementById("qrContainer");
+    qrContainer.innerHTML = ""; // Clear any old QR
+    new QRCode(qrContainer, {
+      text: qrData,
+      width: 200,
+      height: 200
+    });
+  }
+
+  function closeModal() {
+    document.getElementById("qrModal").style.display = "none";
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const qrButton = document.getElementById("qrDownloadBtn");
+    if (qrButton) {
+      qrButton.addEventListener("click", openQRModal);
+    }
+  });
+  
+</script>
+
+
 <body data-pc-preset="preset-1" data-pc-sidebar-caption="true" data-pc-direction="ltr" data-pc-theme="light">
   {% block loader %}
     {% include "includes/loader.html" %}
