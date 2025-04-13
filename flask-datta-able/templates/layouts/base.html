@@ -35,6 +35,79 @@
     {% endblock footer %}
 
     {% include "includes/scripts.html" %}
+    <!-- 👣 Zombie Mouse Follower + Blood Trail -->
+<img id="zombie" src="{{ url_for('static', filename='assets/images/user/ZombieFollow.gif') }}" alt="Zombie" />
+
+<style>
+  #zombie {
+    position: absolute;
+    width: 80px;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s linear;
+  }
+
+  .blood {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-image: url('{{ url_for("static", filename="assets/images/user/blood.png") }}');
+    background-size: cover;
+    opacity: 0.7;
+    z-index: 1;
+    animation: bloodFade 3s forwards;
+  }
+
+  @keyframes bloodFade {
+    0% { opacity: 0.7; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.5); }
+  }
+</style>
+
+<script>
+  const zombie = document.getElementById('zombie');
+  let mouseX = 0, mouseY = 0;
+  let zombieX = window.innerWidth / 2;
+  let zombieY = window.innerHeight / 2;
+  let prevX = 0;
+
+  // 鼠标移动时记录位置
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.pageX;
+    mouseY = e.pageY;
+
+    // 创建血迹
+    const blood = document.createElement('div');
+    blood.classList.add('blood');
+    blood.style.left = (e.pageX - 10) + 'px';
+    blood.style.top = (e.pageY - 10) + 'px';
+    document.body.appendChild(blood);
+    setTimeout(() => blood.remove(), 3000);
+  });
+
+  function animateZombie() {
+    // 缓动移动公式
+    const speed = 0.05; // 越小越慢
+    zombieX += (mouseX - zombieX) * speed;
+    zombieY += (mouseY - zombieY) * speed;
+
+    zombie.style.left = (zombieX - 40) + 'px';
+    zombie.style.top = (zombieY - 40) + 'px';
+
+    // 判断方向翻转
+    if (zombieX < prevX) {
+      zombie.style.transform = 'scaleX(-1)';
+    } else {
+      zombie.style.transform = 'scaleX(1)';
+    }
+    prevX = zombieX;
+
+    requestAnimationFrame(animateZombie);
+  }
+
+  animateZombie();
+</script>
+
     {% block extra_js %}{% endblock extra_js %}
   
   </body>
