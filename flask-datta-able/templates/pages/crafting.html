@@ -6,7 +6,7 @@
 <div class="pc-container">
   <div id="modalOverlay" class="fixed top-0 left-0 w-full h-full bg-black/50 z-[9998] overflow-y-scroll hidden backdrop-blur-[2px]" onclick="closeSelectedRecipe()"></div>
   
-  <div id="crafting-canvas" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-amber-50 z-[10000] hidden rounded-xl shadow-2xl" onclick="event.stopPropagation()">
+  <div id="crafting-canvas" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-5/6 bg-amber-50 z-[10000] hidden rounded-xl shadow-2xl" onclick="event.stopPropagation()">
     <div class="w-full h-full flex flex-col items-center justify-center p-8">
       <div class="relative w-full h-[70%] overflow-hidden rounded-xl bg-black">
         <video id="camera-stream" class="w-full h-full object-cover" autoplay playsinline></video>
@@ -19,10 +19,12 @@
           </div>
         </div>
       </div>
-      <div id="pre-proccessing" class="flex flex-col items-center justify-center gap-6 mt-6">
+      <div id="pre-proccessing" class="w-full flex flex-row items-center justify-between gap-6 mt-6">
         <div id="pre-proccessing-items" class="flex flex-row items-center justify-center gap-6"></div>
-        <p id="pre-proccessing-instructions" class="text-slate-900 text-center font-bold text-lg">Take a picture of all of these items</p>
-        <button id="capture-btn" class="px-8 py-3 bg-amber-900 text-white rounded-lg font-bold hover:bg-amber-800 transition-colors shadow-lg hover:shadow-xl">Capture</button>
+        <div class="flex-1 flex flex-col items-center justify-center gap-4">
+          <p id="pre-proccessing-instructions" class="text-slate-900 text-center font-bold text-lg">Take a picture of all of these items</p>
+          <button id="capture-btn" class="px-8 py-3 bg-amber-900 text-white rounded-lg font-bold hover:bg-amber-800 transition-colors shadow-lg hover:shadow-xl">Capture</button>
+        </div>
       </div>
       <div id="crafting-instructions-container" class="flex flex-col items-center justify-center gap-6 mt-6">
         <div class="flex flex-col items-center justify-center gap-4">

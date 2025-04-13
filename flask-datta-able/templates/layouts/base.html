@@ -15,9 +15,9 @@
       position: fixed; /* ✅ 从 absolute 改成 fixed，跟随视口 */
       width: 6px;
       height: 6px;
-      background-color: #ffe066;
+      background-color: #ffe06655;
       border-radius: 50%;
-      box-shadow: 0 0 6px #fff7d1;
+      box-shadow: 0 0 6px #fff7d155;
       pointer-events: none;
       z-index: 9998;
       animation: fadeOut 2.5s forwards;
@@ -84,7 +84,7 @@
 
   <!-- 🌆 背景动图 -->
   <div style="position: fixed; bottom: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;">
-    <img src="{{ url_for('static', filename='assets/images/background.gif') }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.2;">
+    <img class="blur-sm bg-amber-50" src="{{ url_for('static', filename='assets/images/background2.gif') }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.2;" draggable="false">
   </div>
 
   {% block content %}{% endblock content %}

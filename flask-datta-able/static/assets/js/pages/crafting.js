@@ -516,10 +516,12 @@ async function craftRecipe() {
         progress += 0.01;
         if(progress > 1) {
             progress = 0;
-            await sleep(1000);
+            setTimeout(() => {
+                animationFrame = requestAnimationFrame(animate);
+            }, 1000);
+        } else {
+            animationFrame = requestAnimationFrame(animate);
         }
-        
-        animationFrame = requestAnimationFrame(animate);
     }
 }
 
