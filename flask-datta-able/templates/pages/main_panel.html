@@ -2,10 +2,6 @@
 
 {% block title %}Main Panel{% endblock title %}
 
-{% extends "layouts/base.html" %}
-
-{% block title %}Main Panel{% endblock title %}
-
 {% block content %}
 <style>
   .passport-wrapper {
@@ -211,8 +207,7 @@
   
   setInterval(updateSurvivalTime, 1000);
   updateSurvivalTime();
-  </script>
-  
+</script>
 
 <script>
   window.addEventListener('DOMContentLoaded', () => {
@@ -272,6 +267,4 @@
     weatherInfo.innerText = "Geolocation not supported.";
   }
 </script>
-
 {% endblock content %}
- 

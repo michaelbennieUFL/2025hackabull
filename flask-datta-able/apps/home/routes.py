@@ -174,8 +174,7 @@ def crafting():
 
 @blueprint.route('/gps')
 def gps():
-<<<<<<< HEAD
-    return render_template('pages/gps.html', segment='gps')
+    return render_template('pages/sample-page.html', segment='gps')
 
 @blueprint.route('/test_inventory')
 def test_inventory():
@@ -185,6 +184,3 @@ def test_inventory():
 @blueprint.route('/test_crafting')
 def test_crafting():
     return render_template('pages/test_crafting.html', segment='crafting')
-=======
-    return render_template('pages/sample-page.html', segment='gps')
->>>>>>> 5f1315cd565915c5b409bf78663a6824c40845ec
