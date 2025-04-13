@@ -111,6 +111,7 @@
         <button id="tutorial-capture-btn" class="btn-green">
           Take Picture
         </button>
+        <!-- Container for Konva stage (snapshot + overlays) -->
         <div
           id="konva-container"
           style="border: 1px solid #ccc; margin-top: 10px;"
@@ -128,6 +129,9 @@
          JavaScript Code
          ============================ -->
     <script>
+      // Global configuration for the API server URL:
+      const BASE_URL = "http://localhost:5001";
+
       // ----------------------------
       // Crafting & Recipe Functions
       // ----------------------------
@@ -147,6 +151,8 @@
           { name: "dry leaves", description: "Crispy, brown leaves." },
           { name: "pine needles", description: "Dried pine needles." },
           { name: "birch bark", description: "Strips of birch bark." },
+          { name: "flint and steel", description: "Strips of birch bark." },
+          { name: "wood", description: "Strips of birch bark." },
         ];
         // Simulated recipes array
         let recipes = [
@@ -158,6 +164,12 @@
           {
             name: "Fire Starter",
             materials: [materials[2], materials[3], materials[4]],
+            crafting:
+              "Combine dry leaves, pine needles, and birch bark to ignite a flame.",
+          },
+          {
+            name: "campfire",
+            materials: [materials[6], materials[5]],
             crafting:
               "Combine dry leaves, pine needles, and birch bark to ignite a flame.",
           },
@@ -216,7 +228,8 @@
       function saveSelectedRecipe() {
         console.log("Recipe saved:", selectedRecipeObject.name);
         document.getElementById("save-recipe-btn").style.display = "none";
-        document.getElementById("saved-checkmark").style.display = "inline-block";
+        document.getElementById("saved-checkmark").style.display =
+          "inline-block";
       }
       function unsaveSelectedRecipe() {
         console.log("Recipe unsaved:", selectedRecipeObject.name);
@@ -233,7 +246,9 @@
       const tutorialHeader = document.getElementById("tutorial-header");
       const tutorialItemName = document.getElementById("tutorial-item-name");
       const tutorialVideo = document.getElementById("tutorial-video-stream");
-      const tutorialCaptureBtn = document.getElementById("tutorial-capture-btn");
+      const tutorialCaptureBtn = document.getElementById(
+        "tutorial-capture-btn"
+      );
       const konvaContainer = document.getElementById("konva-container");
       const tutorialBackBtn = document.getElementById("tutorial-back-btn");
 
@@ -254,21 +269,16 @@
         }
       }
 
-      // Capture the video frame and display it in a Konva stage
+      // Capture the video frame, show it on a Konva stage, and then send it to the API
       tutorialCaptureBtn.addEventListener("click", () => {
         const tempCanvas = document.createElement("canvas");
         tempCanvas.width = tutorialVideo.videoWidth;
         tempCanvas.height = tutorialVideo.videoHeight;
         const ctx = tempCanvas.getContext("2d");
-        ctx.drawImage(
-          tutorialVideo,
-          0,
-          0,
-          tempCanvas.width,
-          tempCanvas.height
-        );
+        ctx.drawImage(tutorialVideo, 0, 0, tempCanvas.width, tempCanvas.height);
         const dataURL = tempCanvas.toDataURL("image/png");
-        // Clear existing Konva container content
+
+        // Clear existing Konva container and create a stage for the snapshot
         konvaContainer.innerHTML = "";
         const stage = new Konva.Stage({
           container: "konva-container",
@@ -277,6 +287,8 @@
         });
         const layer = new Konva.Layer();
         stage.add(layer);
+
+        // Create and add the snapshot image to the stage
         const imgObj = new Image();
         imgObj.onload = function () {
           const konvaImage = new Konva.Image({
@@ -285,23 +297,179 @@
             image: imgObj,
             width: tempCanvas.width,
             height: tempCanvas.height,
-            draggable: true,
           });
           layer.add(konvaImage);
-          layer.batchDraw();
+          layer.draw();
+
+          // Now that the image is drawn, send the snapshot to the API
+          sendSnapshotForInstructions(dataURL, stage, layer);
         };
         imgObj.src = dataURL;
       });
+
+      // Sends the captured image (dataURL) to the API endpoint to get instructions
+      function sendSnapshotForInstructions(imageDataURL, stage, layer) {
+        const formData = new FormData();
+        // Use selected recipe properties as target and materials (or set defaults)
+        const targetObject =
+          selectedRecipeObject.name || "default target";
+        const materials = JSON.stringify(
+          selectedRecipeObject.materials || []
+        );
+        formData.append("target_object", targetObject);
+        formData.append("materials", materials);
+
+        // Convert the dataURL to a Blob by using fetch on the dataURL
+        fetch(imageDataURL)
+          .then((res) => res.blob())
+          .then((blob) => {
+            formData.append("image", blob, "snapshot.png");
+            // Send POST request to /analyze/generate_instructions
+            fetch(`${BASE_URL}/analyze/generate_instructions`, {
+              method: "POST",
+              body: formData,
+            })
+              .then((response) => response.json())
+              .then((steps) => {
+                // For debugging: draw blue boxes with indices over each step's bounding box
+                addDebugOverlays(steps, layer);
+                // Animate red circle across the steps using the box_2d data
+                animateSteps(steps, layer);
+              })
+              .catch((err) => {
+                console.error("Error generating instructions:", err);
+              });
+          });
+      }
+
+      // Debugging helper: add blue rectangles with an index label for each step's bounding box
+      function addDebugOverlays(steps, layer) {
+        // Get the Konva stage from the layer
+        const stage = layer.getStage();
+        // Assume the API returns coordinates based on a 1024x1024 reference image.
+        const serverWidth = 1024;
+        const serverHeight = 1024;
+        // Get the actual canvas dimensions
+        const canvasWidth = stage.width();
+        const canvasHeight = stage.height();
+        // Compute scaling factors
+        const scaleX = canvasWidth / serverWidth;
+        const scaleY = canvasHeight / serverHeight;
+
+        steps.forEach((step, idx) => {
+          // Interpret box_2d as [y0, x0, y1, x1]
+          const [y0, x0, y1, x1] = step.box_2d;
+
+          // Scale the coordinates accordingly
+          const rectX = x0 * scaleX;
+          const rectY = y0 * scaleY;
+          const rectWidth = Math.abs(x1 - x0) * scaleX;
+          const rectHeight = Math.abs(y1 - y0) * scaleY;
+
+          // Create blue rectangle for the debugging overlay
+          const blueRect = new Konva.Rect({
+            x: rectX,
+            y: rectY,
+            width: rectWidth,
+            height: rectHeight,
+            stroke: "blue",
+            strokeWidth: 2,
+            fill: "rgba(0, 0, 255, 0.2)",
+          });
+          layer.add(blueRect);
+
+          // Create text with the step index (starting at 1) at the center of the rectangle
+          const idxText = new Konva.Text({
+            x: rectX + rectWidth / 2,
+            y: rectY + rectHeight / 2,
+            text: (idx + 1).toString(),
+            fontSize: 16,
+            fill: "white",
+          });
+          // Center the text by offsetting it based on its width and height
+          idxText.offsetX(idxText.width() / 2);
+          idxText.offsetY(idxText.height() / 2);
+          layer.add(idxText);
+        });
+        layer.draw();
+      }
+
+
+      // Animate a red circle that continuously cycles between each step's bounding box
+function animateSteps(steps, layer) {
+  if (!steps || steps.length === 0) {
+    console.log("No steps returned from API.");
+    return;
+  }
+
+  const stage = layer.getStage();
+  const serverWidth = 1024;
+  const serverHeight = 1024;
+  const canvasWidth = stage.width();
+  const canvasHeight = stage.height();
+  const scaleX = canvasWidth / serverWidth;
+  const scaleY = canvasHeight / serverHeight;
+
+  const redCircle = new Konva.Circle({
+    x: 0,
+    y: 0,
+    radius: 0,
+    stroke: "red",
+    strokeWidth: 3,
+    dash: [4, 2],
+  });
+  layer.add(redCircle);
+  layer.draw();
+
+  let currentStep = 0;
+
+  function nextStep() {
+    const step = steps[currentStep];
+    const [y0, x0, y1, x1] = step.box_2d;
+
+    // Scale coordinates
+    const scaledX0 = x0 * scaleX;
+    const scaledY0 = y0 * scaleY;
+    const scaledX1 = x1 * scaleX;
+    const scaledY1 = y1 * scaleY;
+
+    const centerX = (scaledX0 + scaledX1) / 2;
+    const centerY = (scaledY0 + scaledY1) / 2;
+    const width = Math.abs(scaledX1 - scaledX0);
+    const height = Math.abs(scaledY1 - scaledY0);
+    const radius = Math.sqrt((width / 2) ** 2 + (height / 2) ** 2);
+
+    const tween = new Konva.Tween({
+      node: redCircle,
+      duration: 1,
+      x: centerX,
+      y: centerY,
+      radius: radius,
+      easing: Konva.Easings.EaseInOut,
+      onFinish: () => {
+        setTimeout(() => {
+          currentStep = (currentStep + 1) % steps.length;
+          nextStep();
+        }, 1000);
+      },
+    });
+    tween.play();
+  }
+
+  nextStep();
+}
+
 
       // Switch to the Tutorial view when the Tutorial button is clicked
       tutorialBtn.addEventListener("click", () => {
         recipeInfo.style.display = "none";
         tutorialSection.style.display = "block";
-        tutorialItemName.textContent = selectedRecipeObject.name;
+        tutorialItemName.textContent =
+          selectedRecipeObject.name || "Recipe";
         startTutorialCamera();
       });
 
-      // Back button in the tutorial: stop the stream and show recipe info
+      // Back button in the tutorial: stop the video stream and return to recipe info
       tutorialBackBtn.addEventListener("click", () => {
         const stream = tutorialVideo.srcObject;
         if (stream) {

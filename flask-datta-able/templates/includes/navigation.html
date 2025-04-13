@@ -90,6 +90,7 @@
           <div class="dropdown-menu dropdown-user-profile dropdown-menu-end pc-h-dropdown p-0 overflow-hidden">
             <div class="dropdown-header d-flex align-items-center justify-content-between bg-primary">
               <div class="d-flex my-2">
+                {% if current_user.is_authenticated %}
                 <div class="flex-shrink-0">
                   <img src="{{ url_for('static', filename='assets/images/user/avatar-2.jpg') }}" alt="user-image" class="user-avtar wid-35" />
                 </div>
@@ -97,7 +98,12 @@
                   <h6 class="text-white mb-1">Michael Bennie</h6>
                   <span class="text-white text-opacity-75">MichaelBennie@ufl.edu</span>
                 </div>
-              </div>
+              {% else %}
+                <!-- 不显示头像和文字 -->
+                <div class="flex-shrink-0"></div>
+                <div class="flex-grow-1 ms-3"></div>
+              {% endif %}
+                            </div>
             </div>
             <div class="dropdown-body">
               <div class="d-grid my-2 px-3">
