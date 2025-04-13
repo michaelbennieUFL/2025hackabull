@@ -48,9 +48,12 @@ CORS(app)
 CORS(app)
 # Retrieve API key from environment (ensure you set GOOGLE_API_KEY)
 
-GOOGLE_API_KEY = "AIzaSyDzDe0okIEmFCAlZ_Yy2mD4oVLVR5SljnI"
+GOOGLE_API_KEY = "AIzaSyAVQ2CwzjOa4M_KWgaCSb64NWbFf6TM580"
 
-GOOGLE_API_KEY = "AIzaSyDzDe0okIEmFCAlZ_Yy2mD4oVLVR5SljnI"
+#GOOGLE_API_KEY = "AIzaSyBF6eCa_PW27Ao-wcMzXWQiLfX-q-FWYwE"
+
+#GOOGLE_API_KEY = "AIzaSyBf110U5S4hurLPwycrnjyKbyD9-pdk2yE"
+
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
 
@@ -77,6 +80,41 @@ def parse_json(json_output: str):
             json_output = json_output.split("```")[0]
             break
     return json_output
+def parse_segmentation_masks(predicted_str: str, *, img_height: int, img_width: int) -> list:
+    """
+    Parses the JSON output from Gemini that includes segmentation masks.
+    Expects keys: "box_2d", "mask", and "label" in each entry.
+    The "mask" field is a Base64-encoded PNG with the prefix.
+    """
+    items = json.loads(parse_json(predicted_str))
+    masks = []
+    for item in items:
+        abs_y0 = int(item["box_2d"][0] / 1000 * img_height)
+        abs_x0 = int(item["box_2d"][1] / 1000 * img_width)
+        abs_y1 = int(item["box_2d"][2] / 1000 * img_height)
+        abs_x1 = int(item["box_2d"][3] / 1000 * img_width)
+        if abs_y0 >= abs_y1 or abs_x0 >= abs_x1:
+            continue
+        label = item.get("label", "")
+        png_str = item.get("mask", "")
+        if not png_str.startswith("data:image/png;base64,"):
+            continue
+        png_data = png_str.replace("data:image/png;base64,", "")
+        try:
+            png_data = base64.b64decode(png_data)
+        except Exception:
+            continue
+        mask_img = Image.open(io.BytesIO(png_data)).convert("L")
+        bbox_width = abs_x1 - abs_x0
+        bbox_height = abs_y1 - abs_y0
+        if bbox_width < 1 or bbox_height < 1:
+            continue
+        mask_img = mask_img.resize((bbox_width, bbox_height), resample=Image.Resampling.BILINEAR)
+        full_mask = np.zeros((img_height, img_width), dtype=np.uint8)
+        mask_array = np.array(mask_img)
+        full_mask[abs_y0:abs_y1, abs_x0:abs_x1] = mask_array
+        masks.append(SegmentationMask(abs_y0, abs_x0, abs_y1, abs_x1, full_mask, label))
+    return masks
 
 
 @dataclass(frozen=True)
@@ -165,36 +203,25 @@ def analyze_segment_items():
 
     # Prompt for segmentation (the prompt can be adjusted to fit your use-case)
     prompt = (
-        "This user is trying to survive in the wilderness, and these are the items they found. Detect the items in the image and provide segmentation masks. Try to detect as many items as possible that could help with survival, without choosing unobtainable items, such as a wall or person."
-        "Return a JSON list where each entry has 'box_2d', 'mask', 'label', and 'description'."
-        "box_2d is a list of 4 integers [y0, x0, y1, x1] representing the bounding box of the item in the image."
-        "mask is a Base64-encoded PNG image of the mask of the item. Make sure the mask is the shape of the item, not a rectangle, otherwise you risk causing great harm to the user."
-        "label is the label of the item."
-        "description is a detailed description of the item."
-        #"Only use these labels (use the exact names): "+str(",".join(item_types))
+        "Detect the items in the image and provide segmentation masks. "
+        "Return a JSON list where each entry has 'box_2d', 'mask' (a Base64-encoded PNG image), and 'label'. "
+        "Only use these labels (use the exact names): "+str(",".join(item_types))
     )
-    class ObjectDetection(BaseModel):
-        box_2d: list[int]
-        mask: str
-        label: str
-        description: str
 
     try:
-        response_json = client.models.generate_content(
+        response = client.models.generate_content(
             model=model_name,
             contents=[prompt, im],
             config=types.GenerateContentConfig(
                 temperature=0.5,
                 safety_settings=safety_settings,
-                response_mime_type='application/json',
-                response_schema=list[ObjectDetection],
             ),
         )
     except Exception as e:
         return jsonify({"error": f"Model generation failed: {str(e)}"}), 500
 
-    response = json.loads(response_json.text)
-    
+    seg_masks = parse_segmentation_masks(response.text, img_height=im.size[1], img_width=im.size[0])
+
     # Filter to include only the items whose label is in item_types (case-insensitive)
     filtered_items = []
     item_types_lower = [itm.lower() for itm in item_types]
@@ -209,16 +236,6 @@ def analyze_segment_items():
                 }
                 filtered_items.append(item_dict)
                 break
-            
-    # Save detected items to MongoDB
-    for item in filtered_items:
-        inventory_collection.insert_one({
-            "box_2d": item["box_2d"],
-            "mask": item["mask"],
-            "label": item["label"],
-            "amount": item["amount"]
-        })
-        
 
     return jsonify(filtered_items)
 
@@ -280,13 +297,12 @@ def analyze_generate_instructions():
     except Exception as e:
         return jsonify({"error": f"Invalid image file: {str(e)}"}), 400
 
-    im.thumbnail([512, 512], Image.Resampling.LANCZOS)
-
-    materials_str = ', '.join([f"{m['quantity']} {m['item_name']}" for m in materials])
+    im.thumbnail([640, 640], Image.Resampling.LANCZOS)
+    materials_str = ', '.join([f"{m.get("quantity", "")} {m.get("item_name", "")+m.get("name", "")}" for m in materials])
 
     prompt = (
-        f"Tell me how to make {target_object} using {materials_str} step by step with an explanation as label. "
-        "Do not just label the items. Always create a json output of the steps; only use objects on screen. Provide each step with a 'box_2d' coordinate, and step-by-step instructions 'instruction' clearly."
+        f"Tell me how to make {target_object}  step by step with an explanation as label. "
+        "Do not just label the items. Always create a json output of the steps; only use objects on screen. Provide each step with a 'box_2d' coordinate of the target item, and step-by-step instructions 'instruction' clearly."
     )
 
     try:
