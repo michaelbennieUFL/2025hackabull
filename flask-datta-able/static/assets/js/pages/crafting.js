@@ -4,97 +4,11 @@ const selectedRecipeName = document.getElementById("selected-recipe-name");
 const selectedRecipeDescription = document.getElementById("selected-recipe-description");
 const selectedRecipeMaterials = document.getElementById("selected-recipe-materials");
 
-async function loadRecipes() {
-    recipeList.innerHTML = "";
-
-    /*const objects = localStorage.getItem("objects", JSON.stringify(objects));
-    if(!objects) {
-        return;
-    }
-
-    const response = await fetch("/api/recipes", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ "objects": objects })
-    });
-
-    const data = await response.json(); */
-    const data = [
-        {
-            "name": "Fireplace",
-            "materials": [
-                {
-                    "name": "stone",
-                    "size": "large",
-                    "quantity": 2
-                },
-                {
-                    "name": "stick",
-                    "size": "small",
-                    "quantity": 3
-                },
-                {
-                    "name": "log",
-                    "size": "large",
-                    "quantity": 1
-                }
-            ],
-            "crafting": "Take the stone and stick and log to the crafting table and craft the fireplace."
-        },
-        {
-            "name": "Stone Pickaxe",
-            "materials": [
-                {
-                    "name": "stone",    
-                    "size": "large",
-                    "quantity": 2
-                },
-                {
-                    "name": "stick",
-                    "size": "small",
-                    "quantity": 3
-                }
-            ],
-            "crafting": "Take the stone and stick to the crafting table and craft the stone pickaxe."
-        },
-        {
-            "name": "Stone Axe",
-            "materials": [
-                {
-                    "name": "stone",
-                    "size": "large",
-                    "quantity": 2
-                },
-                {
-                    "name": "stick",
-                    "size": "small",
-                    "quantity": 3
-                }
-            ],
-            "crafting": "Take the stone and stick to the crafting table and craft the stone axe."
-        }
-    ]
-    console.log(data);
-
-    for(const recipe of data) {
-        const recipeItem = document.createElement("div");
-        recipeItem.className = "flex flex-col gap-2 justify-center h-full p-4 shadow-xl bg-white rounded-md hover:shadow-xl hover:shadow-black/20 duration-300 transition-all";
-const saveRecipeBtn = document.getElementById("save-recipe-btn");
-const savedCheckmark = document.getElementById("saved-checkmark");
-
-const selectedRecipeObject = {
-    name: "",
-    materials: [],
-    crafting: "",
-    openTime: Date.now()
-};
 
 async function loadRecipes() {
     showLoadingAnimation();
 
-    const materials = JSON.parse(localStorage.getItem("materials") || "[]");
+    const materials = JSON.parse(localStorage.getItem("inventory") || "[]");
     if(!materials.length) {
         materials.push({
             "name": "stone",
@@ -236,8 +150,6 @@ document.addEventListener("click", (event) => {
         closeSelectedRecipe();
     }
 });
-
-loadRecipes();
 
 function saveSelectedRecipe() {
     // Get existing saved recipes or initialize empty array
