@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     
-    <title>{% block title %}{% endblock title %} | Flask Datta Able </title>
+    <title>{% block title %}{% endblock title %} | Snapcraft </title>
 
     <link rel="canonical" href="https://app-generator.dev/product/datta-able/flask/" />
 
@@ -23,6 +23,10 @@
     {% block navigation %}
       {% include "includes/navigation.html" %}
     {% endblock navigation %}
+
+    <div style="position: fixed; bottom: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;">
+        <img src="{{ url_for('static', filename='assets/images/background.gif') }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.2;">
+    </div>
 
     {% block content %}{% endblock content %}
      

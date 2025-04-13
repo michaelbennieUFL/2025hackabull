@@ -5,21 +5,33 @@
 {% block content %}
   <div class="pc-container">
     
-  <div id="selected-recipe" class="absolute top-0 left-0 w-full h-full bg-black/50 z-50 flex flex-col items-center justify-center">
-    <div class="w-3/4 h-3/4 bg-amber-50 rounded-md p-2">
-      <div class="w-full flex flex-row">
-        <button class="text-slate-900 text-2xl font-bold" onClick="saveSelectedRecipe()">Save</button>
-        <button class="text-red-500 w-8 h-8 p-1 border-2 border-red-500 rounded-full flex items-center justify-center text-2xl font-bold ml-auto" onClick="closeSelectedRecipe()">
+
+  <div id="selected-recipe" class="shadow-2xl shadow-black/20 fixed top-[74px] right-0 h-[calc(100vh-74px)] w-0 bg-amber-50 !z-50 transition-all duration-300 ease-in-out overflow-y-auto">
+    <div class="w-full h-full p-2">
+      <div class="w-full flex flex-row sticky top-0 bg-amber-50 z-10 p-2">
+        <button id="save-recipe-btn" class="text-slate-900 w-8 h-8 p-1 rounded-full flex items-center justify-center text-2xl font-bold" onClick="saveSelectedRecipe()">
+          <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" d="M 11 2 L 11 11 L 2 11 L 2 13 L 11 13 L 11 22 L 13 22 L 13 13 L 22 13 L 22 11 L 13 11 L 13 2 Z"></path>
+          </svg>
+        </button>
+        <button id="saved-checkmark" class="fill-green-500 w-8 h-8 p-1 rounded-full flex items-center justify-center text-2xl font-bold" onClick="unsaveSelectedRecipe()">
+          <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" d="M 20.292969 5.2929688 L 9 16.585938 L 4.7070312 12.292969 L 3.2929688 13.707031 L 9 19.414062 L 21.707031 6.7070312 L 20.292969 5.2929688 z"></path>
+          </svg>
+        </button>
+        <button class="text-red-500 w-8 h-8 p-1 rounded-full flex items-center justify-center text-2xl font-bold ml-auto" onClick="closeSelectedRecipe()">
+
           <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="50" height="50" viewBox="0 0 48 48">
             <path fill="#F44336" d="M21.5 4.5H26.501V43.5H21.5z" transform="rotate(45.001 24 24)"></path><path fill="#F44336" d="M21.5 4.5H26.5V43.501H21.5z" transform="rotate(135.008 24 24)"></path>
           </svg>
         </button>
       </div>
 
-      <div class="flex flex-col items-center justify-center gap-4">
+
+      <div class="w-full p-8 flex flex-col items-center gap-4">
         <h2 id="selected-recipe-name" class="text-center font-bold text-xl">Name</h2>
         <p id="selected-recipe-description" class="text-center text-slate-900">Description</p>
-        <div id="selected-recipe-materials" class="flex flex-col items-center justify-center gap-4"></div>
+        <div id="selected-recipe-materials" class="flex flex-col w-full bg-white rounded-md p-4 gap-2"></div>
       </div>
     </div>
   </div>
@@ -37,12 +49,14 @@
           </div>
         </div>
       </div>
-      <div class="row flex flex-col gap-8">
+
+      <div class="row flex flex-col gap-16">
 
         <div class="flex flex-col items-center justify-center gap-4">
           <h2 class="text-center font-bold text-xl">Your Cookbook</h2>
-          <div class="w-full flex flex-col items-center justify-center bg-amber-50 shadow-inset">
-            <div id="recipe-list" class="w-full flex flex-col items-center justify-center p-4 gap-4"></div>
+          <div class="w-full h-[50vh] flex flex-col items-center justify-center bg-amber-50 shadow-inset">
+            <div id="recipe-list" class="w-full h-full flex flex-row items-center justify-center p-4 gap-4"></div>
+
           </div>
         </div>
 

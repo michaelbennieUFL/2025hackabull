@@ -2,6 +2,14 @@
 
 {% block title %}Login{% endblock title %}
 
+<!-- 🔥 Background here -->
+<div style="position: fixed; bottom: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;">
+  <img src="{{ url_for('static', filename='assets/images/background.gif') }}"
+       style="width: 100%; height: 100%; object-fit: cover; opacity: 0.2;">
+       
+</div>
+
+
 {% block content %}
 
   <div class="auth-main">
@@ -21,7 +29,7 @@
               <div class="text-center">
                 <a href="{{ url_for('home_blueprint.index') }}">
                   <div>
-                    <img src="{{ url_for('static', filename='assets/images/logo-dark.svg') }}" alt="img">
+                    <img src="{{ url_for('static', filename='assets/images/user/Survive_Icon.png') }}" alt="Survivor System" style="height: 140px; width: 140px;transform: translateY(-10px)">
                   </div>
                 </a>
               </div>
